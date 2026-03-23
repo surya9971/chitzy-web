@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Help & Support — Chitzy</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #070C0B;
+      color: #F1F5F9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.7;
+      padding: 40px 20px 80px;
+    }
+    .container { max-width: 720px; margin: 0 auto; }
+    .logo {
+      font-size: 28px;
+      font-weight: 800;
+      color: #0D9488;
+      margin-bottom: 8px;
+      letter-spacing: -0.5px;
+    }
+    .tagline { color: #94A3B8; font-size: 14px; margin-bottom: 48px; }
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      color: #F1F5F9;
+      margin-bottom: 8px;
+    }
+    .subtitle { color: #94A3B8; margin-bottom: 48px; }
+    h2 {
+      font-size: 18px;
+      font-weight: 700;
+      color: #5EEAD4;
+      margin: 36px 0 16px;
+    }
+    p { color: #94A3B8; margin-bottom: 14px; }
+    a { color: #0D9488; text-decoration: none; }
+    a:hover { text-decoration: underline; }
+    .faq { margin-bottom: 8px; }
+    .faq-q {
+      background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 12px;
+      padding: 16px 20px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #F1F5F9;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      user-select: none;
+    }
+    .faq-q:hover { border-color: rgba(13,148,136,0.4); }
+    .faq-q .arrow { color: #475569; font-size: 18px; transition: transform 0.2s; }
+    .faq-q.open .arrow { transform: rotate(90deg); color: #0D9488; }
+    .faq-a {
+      display: none;
+      background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      padding: 16px 20px;
+      color: #94A3B8;
+      font-size: 15px;
+    }
+    .faq-a.open { display: block; }
+    .contact-card {
+      background: #0F1714;
+      border: 1px solid rgba(13,148,136,0.3);
+      border-radius: 16px;
+      padding: 28px;
+      margin-top: 48px;
+      text-align: center;
+    }
+    .contact-card h3 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: #F1F5F9;
+    }
+    .contact-card p { margin-bottom: 20px; }
+    .btn {
+      display: inline-block;
+      background: #0D9488;
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-weight: 600;
+      font-size: 15px;
+      text-decoration: none;
+      margin: 4px;
+    }
+    .btn:hover { background: #0f7a70; text-decoration: none; }
+    .btn.outline {
+      background: transparent;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #94A3B8;
+    }
+    .btn.outline:hover { border-color: #0D9488; color: #0D9488; }
+    .divider {
+      border: none;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      margin: 48px 0 32px;
+    }
+    footer {
+      color: #475569;
+      font-size: 13px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="logo">chitzy</div>
+    <div class="tagline">Anonymous messages. Real connections.</div>
+
+    <h1>Help & Support</h1>
+    <p class="subtitle">Find answers to common questions or reach out to us directly.</p>
+
+    <!-- Getting Started -->
+    <h2>Getting Started</h2>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">What is Chitzy? <span class="arrow">›</span></div>
+      <div class="faq-a">Chitzy is an anonymous messaging app where people send you honest, fun, or sweet messages — without revealing who they are. Share your Chitzy link and start receiving messages!</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">How do I share my Chitzy link? <span class="arrow">›</span></div>
+      <div class="faq-a">Go to the Share tab at the bottom of the app. Tap the share button to copy your link or send it directly to friends via WhatsApp, Instagram, or any other app.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">Is my phone number visible to others? <span class="arrow">›</span></div>
+      <div class="faq-a">No. Your phone number is only used for login verification and is never shown to other users. People only see your Chitzy name.</div>
+    </div>
+
+    <!-- Messages -->
+    <h2>Messages</h2>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">Can I find out who sent me a message? <span class="arrow">›</span></div>
+      <div class="faq-a">Messages are anonymous by design. You can use coins or watch a short ad to reveal a hint about the sender. Chitzy Pro users get city-level hints. The sender's full identity is never revealed.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">How do coins work? <span class="arrow">›</span></div>
+      <div class="faq-a">You start with 3 coins. Each coin can be spent to reveal a hint about a message sender. You earn more coins by staying active and reaching streak milestones.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">What does the ❤️ button do? <span class="arrow">›</span></div>
+      <div class="faq-a">Tapping ❤️ on a revealed message sends a reaction to the sender anonymously. The sender gets notified that their message was loved — and they earn a streak freeze as a bonus!</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">Can I delete messages? <span class="arrow">›</span></div>
+      <div class="faq-a">Currently messages cannot be individually deleted. If you receive harmful or inappropriate content, please report it to us at support@chitzy.in with a screenshot.</div>
+    </div>
+
+    <!-- Streaks -->
+    <h2>Streaks</h2>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">How do I build a streak? <span class="arrow">›</span></div>
+      <div class="faq-a">Send at least one message every day to build your streak. Streaks are counted by messages you SEND, not receive. Miss a day and your streak resets — unless you use a freeze.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">What are streak freezes? <span class="arrow">›</span></div>
+      <div class="faq-a">A freeze saves your streak if you miss one day. You start with 1 freeze. Earn more by reaching 7-day activity milestones or when someone reacts to your message. Max 3 freezes at a time.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">What are streak milestones? <span class="arrow">›</span></div>
+      <div class="faq-a">Special rewards unlock at 7, 30, 100, 200, 300, 500, and 1000 day streaks. Pro plan rewards unlock at 200 days (1 month free), 300 days (3 months), 500 days (6 months), and 1000 days (lifetime Pro).</div>
+    </div>
+
+    <!-- Pro Plan -->
+    <h2>Chitzy Pro</h2>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">What does Chitzy Pro include? <span class="arrow">›</span></div>
+      <div class="faq-a">
+        Pro gives you: 6 AI message options (free: 3), unlimited hints with no ads, city-level sender hints, Pro badge on your profile, and unlimited streak freezes. Plans start at ₹30/month or ₹300/year.
+      </div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">How do I upgrade to Pro? <span class="arrow">›</span></div>
+      <div class="faq-a">Go to your Profile → tap "Upgrade to Pro". Payment is processed securely via Razorpay. Your Pro status activates instantly after payment.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">How do I cancel my Pro subscription? <span class="arrow">›</span></div>
+      <div class="faq-a">Email us at support@chitzy.in with your registered phone number and we'll cancel your subscription and process any eligible refund within 2 business days.</div>
+    </div>
+
+    <!-- Account -->
+    <h2>Account & Privacy</h2>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">How do I change my Chitzy name? <span class="arrow">›</span></div>
+      <div class="faq-a">Go to Profile → tap your name or the edit button. Note: Chitzy names can only be changed once every 30 days.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">How do I delete my account? <span class="arrow">›</span></div>
+      <div class="faq-a">Email support@chitzy.in from your registered number with subject "Delete my account". We'll permanently delete all your data within 30 days.</div>
+    </div>
+
+    <div class="faq">
+      <div class="faq-q" onclick="toggle(this)">How do I turn off notifications? <span class="arrow">›</span></div>
+      <div class="faq-a">Go to Profile → Settings. You can individually toggle off notifications for new messages, reactions, and streak reminders.</div>
+    </div>
+
+    <!-- Contact -->
+    <div class="contact-card">
+      <h3>Still need help?</h3>
+      <p>Our support team typically responds within 24 hours.</p>
+      <a href="mailto:support@chitzy.in" class="btn">✉️ Email Support</a>
+      <a href="https://chitzy.in/privacy" class="btn outline">Privacy Policy</a>
+    </div>
+
+    <hr class="divider" />
+
+    <footer>
+      © 2026 Chitzy. All rights reserved.<br />
+      <a href="https://chitzy.in" style="color:#475569">chitzy.in</a> · <a href="mailto:support@chitzy.in" style="color:#475569">support@chitzy.in</a>
+    </footer>
+
+  </div>
+
+  <script>
+    function toggle(el) {
+      el.classList.toggle('open');
+      const answer = el.nextElementSibling;
+      answer.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
