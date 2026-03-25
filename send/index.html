@@ -18,12 +18,10 @@
       --tealDim:   rgba(13,148,136,0.15);
       --tealLight: #5EEAD4;
       --orange:    #F97316;
-      --pink:      #F472B6;
       --border:    rgba(255,255,255,0.08);
       --text:      #F1F5F9;
       --textSec:   #94A3B8;
       --textMuted: #475569;
-      --error:     #F87171;
       --r:         16px;
     }
     * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
@@ -34,7 +32,6 @@
     .logo { font-size:22px; font-weight:800; color:var(--teal); letter-spacing:-0.5px; text-decoration:none; }
     .get-app { font-size:12px; font-weight:600; color:var(--tealLight); background:var(--tealDim); border:1px solid rgba(13,148,136,0.3); padding:5px 12px; border-radius:20px; text-decoration:none; white-space:nowrap; }
 
-    /* Container */
     .wrap { max-width:480px; margin:0 auto; padding:28px 20px; }
 
     /* States */
@@ -54,133 +51,66 @@
     .err-sub { color:var(--textSec); font-size:15px; line-height:1.6; }
 
     /* Recipient card */
-    .rcpt-card {
-      display:flex; align-items:center; gap:14px;
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:var(--r); padding:18px; margin-bottom:28px;
-    }
-    .rcpt-av {
-      width:52px; height:52px; border-radius:26px;
-      background:var(--tealDim); border:2px solid var(--teal);
-      display:flex; align-items:center; justify-content:center;
-      font-size:22px; font-weight:800; color:var(--teal); flex-shrink:0;
-    }
+    .rcpt-card { display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:18px; margin-bottom:28px; }
+    .rcpt-av { width:52px; height:52px; border-radius:26px; background:var(--tealDim); border:2px solid var(--teal); display:flex; align-items:center; justify-content:center; font-size:22px; font-weight:800; color:var(--teal); flex-shrink:0; }
     .rcpt-info { flex:1; }
     .rcpt-lbl { font-size:11px; color:var(--textMuted); text-transform:uppercase; letter-spacing:1.2px; margin-bottom:3px; font-weight:600; }
     .rcpt-name { font-size:19px; font-weight:700; }
     .anon-chip { font-size:11px; color:var(--tealLight); background:var(--tealDim); border:1px solid rgba(13,148,136,0.25); padding:5px 11px; border-radius:20px; font-weight:600; flex-shrink:0; }
 
-    /* Quick send */
-    .sec-head { font-size:13px; font-weight:700; color:var(--textSec); text-transform:uppercase; letter-spacing:1.2px; margin-bottom:12px; }
-    .tpl-list { display:flex; flex-direction:column; gap:10px; margin-bottom:6px; }
-    .tpl-card {
-      background:var(--surface); border:1.5px solid var(--border);
-      border-radius:var(--r); padding:14px 16px;
-      cursor:pointer; display:flex; align-items:center; gap:12px;
-      position:relative; overflow:hidden;
-      transition:border-color .15s, background .15s;
-    }
+    /* Section heading */
+    .sec-head { font-size:13px; font-weight:700; color:var(--textSec); text-transform:uppercase; letter-spacing:1.2px; margin-bottom:4px; }
+    .sec-sub { font-size:13px; color:var(--textMuted); margin-bottom:14px; }
+
+    /* Template cards */
+    .tpl-list { display:flex; flex-direction:column; gap:10px; }
+    .tpl-card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r); padding:16px 16px 16px 20px; cursor:pointer; display:flex; align-items:center; gap:12px; position:relative; overflow:hidden; transition:border-color .15s, background .15s; }
     .tpl-card:active { transform:scale(0.985); }
     .tpl-card.sel { border-color:var(--teal); background:rgba(13,148,136,0.08); }
     .tpl-accent { position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:2px 0 0 2px; }
     .tpl-body { flex:1; }
-    .tpl-text { font-size:14px; color:var(--text); line-height:1.5; margin-bottom:6px; }
-    .tpl-cat { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; }
-    .tpl-check { width:24px; height:24px; border-radius:12px; background:var(--teal); display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; flex-shrink:0; opacity:0; transition:opacity .15s; }
+    .tpl-text { font-size:14px; color:var(--text); line-height:1.55; margin-bottom:7px; }
+    .tpl-cat { display:inline-block; font-size:11px; font-weight:600; padding:2px 9px; border-radius:10px; }
+    .tpl-check { width:26px; height:26px; border-radius:13px; background:var(--teal); display:flex; align-items:center; justify-content:center; font-size:13px; color:#fff; flex-shrink:0; opacity:0; transition:opacity .15s; }
     .tpl-card.sel .tpl-check { opacity:1; }
 
-    /* Divider */
-    .divider { display:flex; align-items:center; gap:12px; margin:28px 0 24px; }
-    .div-line { flex:1; height:1px; background:var(--border); }
-    .div-txt { font-size:12px; color:var(--textMuted); font-weight:500; white-space:nowrap; }
+    /* Empty templates */
+    .no-templates { text-align:center; padding:32px 20px; color:var(--textMuted); font-size:14px; line-height:1.6; background:var(--surface); border-radius:var(--r); border:1px solid var(--border); }
 
-    /* Message input */
-    .input-label { font-size:16px; font-weight:700; color:var(--text); margin-bottom:6px; }
-    .input-hint { font-size:13px; color:var(--textMuted); margin-bottom:14px; line-height:1.5; }
-    .msg-wrap {
-      background:var(--surface); border:1.5px solid var(--border);
-      border-radius:var(--r); padding:16px;
-      transition:border-color .2s;
+    /* App download CTA */
+    .app-cta-banner {
+      display:flex; align-items:center; gap:14px;
+      background:var(--surfaceHi); border:1.5px solid var(--border);
+      border-radius:var(--r); padding:16px 18px; margin-top:20px;
     }
-    .msg-wrap:focus-within { border-color:var(--teal); }
-    .msg-wrap textarea {
-      width:100%; background:transparent; border:none; outline:none;
-      color:var(--text); font-size:16px; line-height:1.6;
-      resize:none; font-family:inherit; min-height:120px;
-    }
-    .msg-wrap textarea::placeholder { color:var(--textMuted); }
-    .char-row { display:flex; justify-content:flex-end; margin-top:8px; }
-    .char-ct { font-size:12px; color:var(--textMuted); transition:color .15s; }
-    .char-ct.warn { color:var(--orange); }
-
-    /* Error banner */
-    .err-banner {
-      display:none; align-items:center; gap:10px;
-      background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.3);
-      border-radius:10px; padding:12px 14px; margin-top:12px;
-      font-size:13px; color:var(--error); line-height:1.5;
-    }
-    .err-banner.on { display:flex; }
+    .app-cta-icon { font-size:28px; flex-shrink:0; }
+    .app-cta-body { flex:1; }
+    .app-cta-title { font-size:14px; font-weight:700; color:var(--text); margin-bottom:3px; }
+    .app-cta-sub { font-size:12px; color:var(--textMuted); line-height:1.4; }
+    .app-cta-link { flex-shrink:0; font-size:12px; font-weight:700; color:var(--tealLight); background:var(--tealDim); border:1px solid rgba(13,148,136,0.3); padding:7px 12px; border-radius:10px; text-decoration:none; white-space:nowrap; }
 
     /* Send button */
-    .send-btn {
-      display:flex; align-items:center; justify-content:center; gap:8px;
-      width:100%; background:var(--teal); color:#fff;
-      font-size:16px; font-weight:700; padding:18px;
-      border-radius:var(--r); border:none; cursor:pointer;
-      margin-top:16px; font-family:inherit;
-      transition:opacity .15s, transform .1s;
-      box-shadow:0 6px 24px rgba(13,148,136,0.3);
-    }
-    .send-btn:disabled { opacity:0.4; cursor:not-allowed; box-shadow:none; }
+    .send-btn { display:flex; align-items:center; justify-content:center; width:100%; background:var(--teal); color:#fff; font-size:16px; font-weight:700; padding:18px; border-radius:var(--r); border:none; cursor:pointer; margin-top:20px; font-family:inherit; transition:opacity .15s, transform .1s; box-shadow:0 6px 24px rgba(13,148,136,0.3); }
+    .send-btn:disabled { opacity:0.35; cursor:not-allowed; box-shadow:none; }
     .send-btn:not(:disabled):active { transform:scale(0.97); }
     .disclaimer { text-align:center; font-size:12px; color:var(--textMuted); margin-top:10px; }
 
     /* Success */
-    .success-wrap {
-      display:flex; flex-direction:column; align-items:center;
-      justify-content:center; min-height:75vh;
-      text-align:center; padding:20px;
-      animation:fadeUp .4s ease;
-    }
+    .success-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:75vh; text-align:center; padding:20px; animation:fadeUp .4s ease; }
     @keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-    .success-icon {
-      width:88px; height:88px; border-radius:44px;
-      background:var(--tealDim); border:2px solid var(--teal);
-      display:flex; align-items:center; justify-content:center;
-      font-size:40px; margin-bottom:24px;
-    }
+    .success-icon { width:88px; height:88px; border-radius:44px; background:var(--tealDim); border:2px solid var(--teal); display:flex; align-items:center; justify-content:center; font-size:40px; margin-bottom:24px; }
     .success-title { font-size:28px; font-weight:800; margin-bottom:10px; }
     .success-sub { color:var(--textSec); font-size:15px; line-height:1.6; margin-bottom:20px; max-width:300px; }
     .success-name { color:var(--tealLight); font-weight:700; }
-    .success-anon {
-      font-size:13px; color:var(--textMuted);
-      background:var(--surface); border:1px solid var(--border);
-      border-radius:12px; padding:12px 18px; margin-bottom:32px;
-    }
-    .another-btn {
-      background:var(--tealDim); color:var(--tealLight);
-      border:1.5px solid rgba(13,148,136,0.3);
-      border-radius:var(--r); padding:15px 32px;
-      font-size:15px; font-weight:600; cursor:pointer;
-      font-family:inherit; margin-bottom:32px;
-      transition:background .15s;
-    }
+    .success-anon { font-size:13px; color:var(--textMuted); background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:12px 18px; margin-bottom:32px; }
+    .another-btn { background:var(--tealDim); color:var(--tealLight); border:1.5px solid rgba(13,148,136,0.3); border-radius:var(--r); padding:15px 32px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; margin-bottom:32px; }
     .another-btn:active { background:rgba(13,148,136,0.25); }
 
-    /* App CTA */
-    .app-cta {
-      width:100%; background:var(--surface);
-      border:1px solid var(--border); border-radius:var(--r);
-      padding:22px 20px; text-align:center;
-    }
-    .app-cta-title { font-size:15px; font-weight:700; margin-bottom:6px; }
-    .app-cta-sub { font-size:13px; color:var(--textSec); margin-bottom:16px; line-height:1.5; }
-    .app-btn {
-      display:inline-block; background:var(--teal); color:#fff;
-      font-size:14px; font-weight:700; padding:12px 24px;
-      border-radius:12px; text-decoration:none;
-    }
+    /* Bottom app CTA (on send screen + success) */
+    .bottom-cta { background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:22px 20px; text-align:center; margin-top:40px; width:100%; }
+    .bottom-cta-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+    .bottom-cta-sub { font-size:13px; color:var(--textSec); margin-bottom:16px; line-height:1.5; }
+    .bottom-cta-btn { display:inline-block; background:var(--teal); color:#fff; font-size:14px; font-weight:700; padding:12px 24px; border-radius:12px; text-decoration:none; }
 
     /* Footer */
     .footer { text-align:center; margin-top:40px; padding-top:20px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:20px; flex-wrap:wrap; }
@@ -214,7 +144,6 @@
 <!-- Send form -->
 <div id="s-send" class="state wrap">
 
-  <!-- Recipient -->
   <div class="rcpt-card">
     <div class="rcpt-av" id="rcpt-av">?</div>
     <div class="rcpt-info">
@@ -224,47 +153,32 @@
     <span class="anon-chip">🔒 Anonymous</span>
   </div>
 
-  <!-- Quick send templates -->
-  <div id="tpl-section" style="display:none">
-    <p class="sec-head">⚡ Quick Send</p>
-    <div class="tpl-list" id="tpl-list"></div>
+  <p class="sec-head">Pick a message to send</p>
+  <p class="sec-sub">Tap one to select, then hit Send.</p>
+
+  <div class="tpl-list" id="tpl-list">
+    <div class="spinner-wrap" style="min-height:200px">
+      <div class="spinner"></div>
+    </div>
   </div>
 
-  <!-- Divider -->
-  <div class="divider">
-    <div class="div-line"></div>
-    <span class="div-txt">or write your own</span>
-    <div class="div-line"></div>
-  </div>
-
-  <!-- Message input -->
-  <p class="input-label">Write your message</p>
-  <p class="input-hint">Say what's on your mind — they'll never know it was you.</p>
-
-  <div class="msg-wrap">
-    <textarea
-      id="msg-input"
-      placeholder="e.g. I really admire the way you handle everything so calmly. You inspire me more than you know."
-      maxlength="500"
-      rows="5"
-    ></textarea>
-    <div class="char-row"><span class="char-ct" id="char-ct">0 / 500</span></div>
-  </div>
-
-  <!-- Error banner (shown when message is flagged) -->
-  <div class="err-banner" id="err-banner">
-    <span>💜</span>
-    <span id="err-banner-txt">Keep it kind — Chitzy only delivers positive messages.</span>
+  <!-- "Want personal?" CTA -->
+  <div class="app-cta-banner">
+    <div class="app-cta-icon">✍️</div>
+    <div class="app-cta-body">
+      <div class="app-cta-title">Want to write your own message?</div>
+      <div class="app-cta-sub">Download Chitzy to send something personal — your words, your way.</div>
+    </div>
+    <a href="https://apps.apple.com/app/chitzy" class="app-cta-link">Get app</a>
   </div>
 
   <button class="send-btn" id="send-btn" disabled>Send Anonymously →</button>
   <p class="disclaimer">🔒 The recipient will never know it was you</p>
 
-  <!-- App CTA -->
-  <div class="app-cta" style="margin-top:48px">
-    <div class="app-cta-title">Want to receive anonymous messages too?</div>
-    <div class="app-cta-sub">Get Chitzy, share your link, and see what people really think of you.</div>
-    <a href="https://apps.apple.com/app/chitzy" class="app-btn">Download on App Store</a>
+  <div class="bottom-cta">
+    <div class="bottom-cta-title">Want to receive anonymous messages too?</div>
+    <div class="bottom-cta-sub">Get Chitzy, share your link, and see what people really think of you.</div>
+    <a href="https://apps.apple.com/app/chitzy" class="bottom-cta-btn">Download on App Store</a>
   </div>
 
   <div class="footer">
@@ -279,16 +193,13 @@
   <div class="success-wrap">
     <div class="success-icon">💬</div>
     <h2 class="success-title">Sent! 🎉</h2>
-    <p class="success-sub">
-      Your anonymous message was delivered to<br>
-      <span class="success-name" id="success-name">@...</span>
-    </p>
+    <p class="success-sub">Your anonymous message was delivered to<br><span class="success-name" id="success-name">@...</span></p>
     <p class="success-anon">🔒 They will never know it was you</p>
     <button class="another-btn" id="another-btn">Send another →</button>
-    <div class="app-cta">
-      <div class="app-cta-title">Want to receive messages like this?</div>
-      <div class="app-cta-sub">Get Chitzy and share your own link with friends.</div>
-      <a href="https://apps.apple.com/app/chitzy" class="app-btn">Download on App Store</a>
+    <div class="bottom-cta">
+      <div class="bottom-cta-title">Want to receive messages like this?</div>
+      <div class="bottom-cta-sub">Get Chitzy and share your own link with friends.</div>
+      <a href="https://apps.apple.com/app/chitzy" class="bottom-cta-btn">Download on App Store</a>
     </div>
   </div>
 </div>
@@ -300,14 +211,14 @@ const EDGE_BASE     = 'https://hupqcccvzkgetxrausda.supabase.co/functions/v1';
 
 const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-let recipientId   = null;
-let recipientName = '';
-let pendingTemplateId = null; // set when a quick-send template is selected
+let recipientId      = null;
+let recipientName    = '';
+let selectedTemplate = null; // { id }
 
 const $ = id => document.getElementById(id);
 const states = ['s-loading','s-error','s-send','s-success'];
 function show(id) { states.forEach(s => $(s).classList.toggle('on', s === id)); }
-function escHtml(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function getUsername() {
   const p = new URLSearchParams(location.search);
@@ -317,7 +228,6 @@ function getUsername() {
   return (path && path !== 'send') ? path : null;
 }
 
-// ── Init ──────────────────────────────────────────────────────────
 async function init() {
   show('s-loading');
   const username = getUsername();
@@ -326,51 +236,48 @@ async function init() {
   const { data: user, error } = await db
     .from('users').select('id, chitzy_name').ilike('chitzy_name', username).single();
 
-  if (error || !user) {
-    showErr('User not found', `@${username} doesn't exist on Chitzy.`);
-    return;
-  }
+  if (error || !user) { showErr('User not found', `@${username} doesn't exist on Chitzy.`); return; }
 
   recipientId   = user.id;
   recipientName = user.chitzy_name;
-  $('rcpt-av').textContent    = recipientName.charAt(0).toUpperCase();
-  $('rcpt-name').textContent  = '@' + recipientName;
+  $('rcpt-av').textContent      = recipientName.charAt(0).toUpperCase();
+  $('rcpt-name').textContent    = '@' + recipientName;
   $('success-name').textContent = '@' + recipientName;
   document.title = `Send @${recipientName} an anonymous message — Chitzy`;
 
-  // Load today's templates + categories
+  await loadTemplates();
+  show('s-send');
+}
+
+async function loadTemplates() {
   const today = new Date().toISOString().split('T')[0];
   const [tplRes, catRes] = await Promise.all([
-    db.from('trending_templates').select('id,text,category_id,likes')
-      .eq('active_date', today).order('likes', { ascending:false }).limit(9),
-    db.from('categories').select('id,name,emoji,color'),
+    db.from('trending_templates')
+      .select('id, text, category_id, likes')
+      .eq('active_date', today)
+      .order('likes', { ascending: false })
+      .limit(10),
+    db.from('categories').select('id, name, emoji, color'),
   ]);
 
   const catMap = {};
   (catRes.data || []).forEach(c => catMap[c.id] = c);
 
-  if (tplRes.data?.length) {
-    // Diversity: one per category first
-    const seen=new Set(), d=[], r=[];
-    for (const t of tplRes.data) {
-      seen.has(t.category_id) ? r.push(t) : (seen.add(t.category_id), d.push(t));
-    }
-    renderTemplates([...d, ...r].slice(0, 6), catMap);
-    $('tpl-section').style.display = 'block';
+  const list = $('tpl-list');
+  list.innerHTML = '';
+
+  if (!tplRes.data?.length) {
+    list.innerHTML = `<div class="no-templates">No messages available today.<br>Check back tomorrow for fresh ones!</div>`;
+    return;
   }
 
-  show('s-send');
-}
+  // Diversity: one per category first, then fill to 10
+  const seen = new Set(), diverse = [], rest = [];
+  for (const t of tplRes.data) {
+    seen.has(t.category_id) ? rest.push(t) : (seen.add(t.category_id), diverse.push(t));
+  }
+  const templates = [...diverse, ...rest];
 
-function showErr(title, sub) {
-  $('err-title').textContent = title;
-  $('err-sub').textContent   = sub;
-  show('s-error');
-}
-
-// ── Templates ─────────────────────────────────────────────────────
-function renderTemplates(templates, catMap) {
-  const list = $('tpl-list');
   templates.forEach(t => {
     const cat   = catMap[t.category_id] || {};
     const color = cat.color || '#0D9488';
@@ -379,100 +286,55 @@ function renderTemplates(templates, catMap) {
     card.innerHTML = `
       <div class="tpl-accent" style="background:${color}"></div>
       <div class="tpl-body">
-        <div class="tpl-text">${escHtml(t.text)}</div>
+        <div class="tpl-text">${esc(t.text)}</div>
         ${cat.name ? `<span class="tpl-cat" style="background:${color}20;color:${color}">${cat.emoji || ''} ${cat.name}</span>` : ''}
       </div>
       <div class="tpl-check">✓</div>`;
     card.addEventListener('click', () => {
       document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('sel'));
       card.classList.add('sel');
-      pendingTemplateId = t.id;
-      // Clear free text when template is selected
-      $('msg-input').value = '';
-      updateChar();
-      hideErrBanner();
+      selectedTemplate = { id: t.id };
       $('send-btn').disabled = false;
     });
     list.appendChild(card);
   });
 }
 
-// ── Message input ─────────────────────────────────────────────────
-$('msg-input').addEventListener('input', () => {
-  updateChar();
-  hideErrBanner();
-  // Deselect template when typing
-  if ($('msg-input').value.trim()) {
-    document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('sel'));
-    pendingTemplateId = null;
-  }
-  $('send-btn').disabled = !$('msg-input').value.trim();
-});
-
-function updateChar() {
-  const len = $('msg-input').value.length;
-  $('char-ct').textContent = `${len} / 500`;
-  $('char-ct').classList.toggle('warn', len > 420);
-}
-
-function hideErrBanner() { $('err-banner').classList.remove('on'); }
-
-// ── Send ──────────────────────────────────────────────────────────
-$('send-btn').addEventListener('click', send);
-
-async function send() {
-  if (!recipientId) return;
-  const text = $('msg-input').value.trim();
-  if (!pendingTemplateId && !text) return;
-
+$('send-btn').addEventListener('click', async () => {
+  if (!selectedTemplate || !recipientId) return;
   $('send-btn').disabled    = true;
   $('send-btn').textContent = 'Sending...';
-  hideErrBanner();
 
   try {
-    const body = pendingTemplateId
-      ? { recipientId, templateId: pendingTemplateId }
-      : { recipientId, text };
-
     const resp = await fetch(`${EDGE_BASE}/send-message-web`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+      body: JSON.stringify({ recipientId, templateId: selectedTemplate.id }),
     });
     const data = await resp.json();
-
-    if (resp.status === 422 && data.error === 'not_safe') {
-      // Moderation rejected — show inline error, don't alert
-      $('err-banner-txt').textContent = data.message || 'Keep it kind 💜 Chitzy only delivers positive messages.';
-      $('err-banner').classList.add('on');
-      $('send-btn').disabled    = false;
-      $('send-btn').textContent = 'Send Anonymously →';
-      return;
-    }
-
     if (!resp.ok) throw new Error(data.error || 'Send failed');
-
     show('s-success');
-
-  } catch (e) {
+  } catch {
     alert('Something went wrong. Please try again.');
     $('send-btn').disabled    = false;
     $('send-btn').textContent = 'Send Anonymously →';
   }
-}
+});
 
-// ── Send another ──────────────────────────────────────────────────
 $('another-btn').addEventListener('click', () => {
-  pendingTemplateId = null;
-  $('msg-input').value      = '';
+  selectedTemplate = null;
   $('send-btn').disabled    = true;
   $('send-btn').textContent = 'Send Anonymously →';
-  updateChar();
-  hideErrBanner();
   document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('sel'));
   show('s-send');
-  window.scrollTo({ top:0, behavior:'smooth' });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 });
+
+showErr = (title, sub) => {
+  $('err-title').textContent = title;
+  $('err-sub').textContent   = sub;
+  show('s-error');
+};
 
 init();
 </script>
