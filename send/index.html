@@ -254,9 +254,9 @@ async function loadTemplates() {
   const [tplRes, catRes] = await Promise.all([
     db.from('trending_templates')
       .select('id, text, category_id, likes')
-      .eq('active_date', today)
+      .lte('active_date', today)        // today or earlier — always has data
       .order('likes', { ascending: false })
-      .limit(10),
+      .limit(30),
     db.from('categories').select('id, name, emoji, color'),
   ]);
 
@@ -267,7 +267,7 @@ async function loadTemplates() {
   list.innerHTML = '';
 
   if (!tplRes.data?.length) {
-    list.innerHTML = `<div class="no-templates">No messages available today.<br>Check back tomorrow for fresh ones!</div>`;
+    list.innerHTML = `<div class="no-templates">No messages available right now.<br>Check back soon!</div>`;
     return;
   }
 
