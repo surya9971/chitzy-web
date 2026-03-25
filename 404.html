@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Chitzy</title>
+  <script>
+    // GitHub Pages SPA redirect trick.
+    // Any unknown path like /SilentPanda42 gets served this 404.html.
+    // We extract the username from the path and redirect to /send?to=username.
+    (function() {
+      var path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+      // Known static paths — let them 404 normally
+      var staticPaths = ['privacy', 'help', 'terms', 'send', 'favicon.ico', 'og-image.png'];
+      if (!path || staticPaths.indexOf(path) !== -1) return;
+      // Treat anything else as a chitzy username
+      window.location.replace('/send?to=' + encodeURIComponent(path));
+    })();
+  </script>
+</head>
+<body style="background:#070C0B;color:#94A3B8;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">
+  Redirecting...
+</body>
+</html>
