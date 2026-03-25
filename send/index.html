@@ -4,696 +4,501 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <title>Send anonymously — Chitzy</title>
-
-  <!-- OG / Social preview -->
-  <meta property="og:title"       content="Someone wants an anonymous message from you 💬" />
-  <meta property="og:description" content="Send them an anonymous message on Chitzy. They'll never know it was you." />
-  <meta property="og:image"       content="https://chitzy.in/og-image.png" />
+  <meta property="og:title"       content="Someone wants an anonymous message 💬" />
+  <meta property="og:description" content="Send them a kind anonymous message on Chitzy. They'll never know it was you." />
   <meta property="og:type"        content="website" />
-  <meta name="twitter:card"       content="summary_large_image" />
-
+  <meta name="twitter:card"       content="summary" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-
   <style>
     :root {
-      --bg:          #070C0B;
-      --surface:     #0F1714;
-      --surfaceHigh: #162019;
-      --teal:        #0D9488;
-      --tealDim:     rgba(13,148,136,0.15);
-      --tealLight:   #5EEAD4;
-      --orange:      #F97316;
-      --border:      rgba(255,255,255,0.08);
-      --text:        #F1F5F9;
-      --textSec:     #94A3B8;
-      --textMuted:   #475569;
-      --error:       #F87171;
-      --radius:      14px;
+      --bg:        #070C0B;
+      --surface:   #0F1714;
+      --surfaceHi: #162019;
+      --teal:      #0D9488;
+      --tealDim:   rgba(13,148,136,0.15);
+      --tealLight: #5EEAD4;
+      --orange:    #F97316;
+      --border:    rgba(255,255,255,0.08);
+      --text:      #F1F5F9;
+      --textSec:   #94A3B8;
+      --textMuted: #475569;
+      --error:     #F87171;
+      --r:         14px;
     }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    body { background:var(--bg); color:var(--text); font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif; min-height:100dvh; padding-bottom:60px; }
 
-    * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+    /* Top bar */
+    .topbar { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); position:sticky; top:0; background:rgba(7,12,11,0.92); backdrop-filter:blur(12px); z-index:10; }
+    .logo { font-size:22px; font-weight:800; color:var(--teal); letter-spacing:-0.5px; text-decoration:none; }
+    .get-app { font-size:12px; font-weight:600; color:var(--tealLight); background:var(--tealDim); border:1px solid rgba(13,148,136,0.3); padding:5px 12px; border-radius:20px; text-decoration:none; }
 
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      min-height: 100dvh;
-      padding-bottom: 60px;
-    }
+    /* Container */
+    .wrap { max-width:480px; margin:0 auto; padding:24px 20px; }
 
-    /* ── Top bar ─────────────────────────────────────────────────── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 20px;
-      border-bottom: 1px solid var(--border);
-      position: sticky;
-      top: 0;
-      background: rgba(7,12,11,0.92);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      z-index: 10;
-    }
-    .logo { font-size: 22px; font-weight: 800; color: var(--teal); letter-spacing: -0.5px; }
-    .app-badge {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--tealLight);
-      background: var(--tealDim);
-      border: 1px solid rgba(13,148,136,0.3);
-      padding: 5px 12px;
-      border-radius: 20px;
-      text-decoration: none;
-    }
+    /* States */
+    .state { display:none; }
+    .state.on { display:block; }
 
-    /* ── Main container ──────────────────────────────────────────── */
-    .container { max-width: 480px; margin: 0 auto; padding: 24px 20px; }
+    /* Spinner */
+    .spinner-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:40vh; gap:12px; }
+    .spinner { width:36px; height:36px; border:3px solid var(--border); border-top-color:var(--teal); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .spin-text { color:var(--textMuted); font-size:14px; }
 
-    /* ── States ──────────────────────────────────────────────────── */
-    #state-loading, #state-error, #state-success { display: none; }
-    #state-loading.active, #state-error.active, #state-send.active, #state-success.active { display: block; }
-    #state-send { display: none; }
+    /* Error */
+    .err-wrap { text-align:center; padding:60px 20px; }
+    .err-emoji { font-size:48px; margin-bottom:16px; }
+    .err-title { font-size:22px; font-weight:700; margin-bottom:8px; }
+    .err-sub { color:var(--textSec); font-size:15px; line-height:1.5; }
 
-    /* ── Loading ─────────────────────────────────────────────────── */
-    .loading-wrap { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 40vh; gap: 12px; }
-    .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--teal); border-radius: 50%; animation: spin 0.8s linear infinite; }
-    @keyframes spin { to { transform: rotate(360deg); } }
-    .loading-text { color: var(--textMuted); font-size: 14px; }
+    /* Recipient card */
+    .hero-label { font-size:12px; color:var(--textMuted); text-transform:uppercase; letter-spacing:1.5px; font-weight:600; margin-bottom:14px; }
+    .rcpt-card { display:flex; align-items:center; gap:14px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:16px; margin-bottom:24px; }
+    .rcpt-av { width:48px; height:48px; border-radius:24px; background:var(--tealDim); border:2px solid var(--teal); display:flex; align-items:center; justify-content:center; font-size:20px; font-weight:800; color:var(--teal); flex-shrink:0; }
+    .rcpt-info { flex:1; }
+    .rcpt-lbl { font-size:11px; color:var(--textMuted); text-transform:uppercase; letter-spacing:1px; margin-bottom:3px; }
+    .rcpt-name { font-size:18px; font-weight:700; }
+    .anon-chip { font-size:11px; color:var(--tealLight); background:var(--tealDim); border:1px solid rgba(13,148,136,0.25); padding:4px 10px; border-radius:20px; font-weight:600; flex-shrink:0; }
 
-    /* ── Error ───────────────────────────────────────────────────── */
-    .error-wrap { text-align: center; padding: 60px 20px; }
-    .error-emoji { font-size: 48px; margin-bottom: 16px; }
-    .error-title { font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-    .error-sub { color: var(--textSec); font-size: 15px; line-height: 1.5; }
+    /* Section heading */
+    .sec-head { font-size:13px; font-weight:700; color:var(--textSec); text-transform:uppercase; letter-spacing:1.2px; margin-bottom:12px; }
 
-    /* ── Recipient card ──────────────────────────────────────────── */
-    .hero { text-align: center; margin-bottom: 28px; padding-top: 8px; }
-    .hero-label { font-size: 13px; color: var(--textMuted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; font-weight: 600; }
-    .recipient-card {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 16px;
-      margin-bottom: 8px;
-    }
-    .recipient-avatar {
-      width: 48px;
-      height: 48px;
-      border-radius: 24px;
-      background: var(--tealDim);
-      border: 2px solid var(--teal);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 20px;
-      font-weight: 800;
-      color: var(--teal);
-      flex-shrink: 0;
-    }
-    .recipient-info { flex: 1; text-align: left; }
-    .recipient-label { font-size: 11px; color: var(--textMuted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
-    .recipient-name { font-size: 18px; font-weight: 700; color: var(--text); }
-    .anon-badge {
-      font-size: 11px;
-      color: var(--tealLight);
-      background: var(--tealDim);
-      border: 1px solid rgba(13,148,136,0.25);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-weight: 600;
-      flex-shrink: 0;
-    }
+    /* Template cards */
+    .tpl-list { display:flex; flex-direction:column; gap:10px; margin-bottom:4px; }
+    .tpl-card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r); padding:14px 16px; cursor:pointer; display:flex; align-items:center; gap:12px; position:relative; overflow:hidden; transition:border-color .15s,background .15s; }
+    .tpl-card:active { transform:scale(0.98); }
+    .tpl-card.sel { border-color:var(--teal); background:rgba(13,148,136,0.08); }
+    .tpl-accent { position:absolute; left:0; top:0; bottom:0; width:3px; }
+    .tpl-body { flex:1; }
+    .tpl-text { font-size:14px; color:var(--text); line-height:1.5; margin-bottom:6px; }
+    .tpl-cat { display:inline-block; font-size:11px; font-weight:600; padding:2px 8px; border-radius:10px; }
+    .tpl-check { width:24px; height:24px; border-radius:12px; background:var(--teal); display:flex; align-items:center; justify-content:center; font-size:12px; color:#fff; flex-shrink:0; opacity:0; transition:opacity .15s; }
+    .tpl-card.sel .tpl-check { opacity:1; }
 
-    /* ── Section labels ──────────────────────────────────────────── */
-    .section-label {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--textSec);
-      text-transform: uppercase;
-      letter-spacing: 1.2px;
-      margin-bottom: 12px;
-      margin-top: 28px;
-    }
+    /* Divider */
+    .divider { display:flex; align-items:center; gap:12px; margin:24px 0 20px; }
+    .divider-line { flex:1; height:1px; background:var(--border); }
+    .divider-txt { font-size:12px; color:var(--textMuted); font-weight:500; white-space:nowrap; }
 
-    /* ── Template cards ──────────────────────────────────────────── */
-    .templates { display: flex; flex-direction: column; gap: 10px; }
-    .template-card {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      transition: border-color 0.15s, background 0.15s;
-      position: relative;
-      overflow: hidden;
-    }
-    .template-card:active { transform: scale(0.98); }
-    .template-card.selected { border-color: var(--teal); background: rgba(13,148,136,0.08); }
-    .template-accent { position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 2px 0 0 2px; }
-    .template-body { flex: 1; }
-    .template-text { font-size: 14px; color: var(--text); line-height: 1.5; margin-bottom: 6px; }
-    .template-cat {
-      display: inline-block;
-      font-size: 11px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 10px;
-    }
-    .template-check {
-      width: 24px;
-      height: 24px;
-      border-radius: 12px;
-      background: var(--teal);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      color: white;
-      flex-shrink: 0;
-      opacity: 0;
-      transition: opacity 0.15s;
-    }
-    .template-card.selected .template-check { opacity: 1; }
+    /* Thought input */
+    .thought-label { font-size:14px; font-weight:600; color:var(--text); margin-bottom:4px; }
+    .thought-hint { font-size:12px; color:var(--textMuted); margin-bottom:10px; line-height:1.4; }
+    .thought-wrap { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r); padding:14px 16px; transition:border-color .15s; }
+    .thought-wrap:focus-within { border-color:var(--teal); }
+    .thought-wrap textarea { width:100%; background:transparent; border:none; outline:none; color:var(--text); font-size:15px; line-height:1.55; resize:none; font-family:inherit; min-height:80px; }
+    .thought-wrap textarea::placeholder { color:var(--textMuted); }
+    .char-row { display:flex; justify-content:flex-end; margin-top:6px; }
+    .char-ct { font-size:11px; color:var(--textMuted); }
 
-    /* ── Divider ─────────────────────────────────────────────────── */
-    .divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 24px 0 20px;
-    }
-    .divider-line { flex: 1; height: 1px; background: var(--border); }
-    .divider-text { font-size: 12px; color: var(--textMuted); font-weight: 500; white-space: nowrap; }
+    /* Generate button */
+    .gen-btn { display:flex; align-items:center; justify-content:center; gap:8px; width:100%; background:var(--surfaceHi); color:var(--tealLight); border:1.5px solid rgba(13,148,136,0.3); font-size:15px; font-weight:600; padding:15px; border-radius:var(--r); border:none; cursor:pointer; margin-top:12px; font-family:inherit; transition:background .15s,opacity .15s; border:1.5px solid rgba(13,148,136,0.35); }
+    .gen-btn:disabled { opacity:0.4; cursor:not-allowed; }
+    .gen-btn:not(:disabled):active { background:rgba(13,148,136,0.2); }
 
-    /* ── Text input ──────────────────────────────────────────────── */
-    .input-wrap {
-      background: var(--surface);
-      border: 1.5px solid var(--border);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      transition: border-color 0.15s;
-      position: relative;
-    }
-    .input-wrap:focus-within { border-color: var(--teal); }
-    .input-wrap textarea {
-      width: 100%;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: var(--text);
-      font-size: 15px;
-      line-height: 1.55;
-      resize: none;
-      font-family: inherit;
-      min-height: 90px;
-    }
-    .input-wrap textarea::placeholder { color: var(--textMuted); }
-    .char-count { font-size: 11px; color: var(--textMuted); text-align: right; margin-top: 6px; }
-    .char-count.warn { color: var(--orange); }
+    /* Options section */
+    #options-section { margin-top:24px; display:none; }
+    #options-section.on { display:block; }
+    .options-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:4px; }
+    .ai-tag { display:flex; align-items:center; gap:5px; font-size:11px; font-weight:600; color:var(--teal); background:rgba(13,148,136,0.12); border:1px solid rgba(13,148,136,0.3); padding:3px 9px; border-radius:20px; }
+    .ai-dot { width:6px; height:6px; border-radius:3px; background:var(--teal); }
+    .options-hint { font-size:12px; color:var(--textMuted); margin-bottom:12px; }
+    .opt-list { display:flex; flex-direction:column; gap:10px; }
+    .opt-card { background:var(--surface); border:1.5px solid var(--border); border-radius:var(--r); padding:14px 48px 14px 20px; cursor:pointer; position:relative; overflow:hidden; transition:border-color .15s,background .15s; }
+    .opt-card:active { transform:scale(0.98); }
+    .opt-card.sel { border-color:var(--teal); background:rgba(13,148,136,0.08); }
+    .opt-accent { position:absolute; left:0; top:0; bottom:0; width:3px; }
+    .opt-num { font-size:10px; font-weight:700; color:var(--teal); text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; opacity:0.7; }
+    .opt-text { font-size:14px; color:var(--text); line-height:1.55; }
+    .opt-check { position:absolute; right:14px; top:50%; transform:translateY(-50%); width:22px; height:22px; border-radius:11px; background:var(--teal); display:flex; align-items:center; justify-content:center; font-size:11px; color:#fff; opacity:0; transition:opacity .15s; }
+    .opt-card.sel .opt-check { opacity:1; }
 
-    /* ── Selected preview ────────────────────────────────────────── */
-    .selected-preview {
-      background: var(--surfaceHigh);
-      border: 1.5px solid rgba(13,148,136,0.35);
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-top: 16px;
-      display: none;
-    }
-    .selected-preview.visible { display: block; }
-    .preview-label { font-size: 11px; color: var(--tealLight); text-transform: uppercase; letter-spacing: 1px; font-weight: 600; margin-bottom: 6px; }
-    .preview-text { font-size: 14px; color: var(--text); line-height: 1.5; }
+    /* Selected preview */
+    .preview { background:var(--surfaceHi); border:1.5px solid rgba(13,148,136,0.35); border-radius:var(--r); padding:14px 16px; margin-top:16px; display:none; }
+    .preview.on { display:block; }
+    .preview-lbl { font-size:11px; color:var(--tealLight); text-transform:uppercase; letter-spacing:1px; font-weight:600; margin-bottom:6px; }
+    .preview-txt { font-size:14px; color:var(--text); line-height:1.5; }
 
-    /* ── Send button ─────────────────────────────────────────────── */
-    .send-btn {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-      width: 100%;
-      background: var(--teal);
-      color: white;
-      font-size: 16px;
-      font-weight: 700;
-      padding: 17px;
-      border-radius: var(--radius);
-      border: none;
-      cursor: pointer;
-      margin-top: 16px;
-      transition: opacity 0.15s, transform 0.1s;
-      font-family: inherit;
-    }
-    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-    .send-btn:not(:disabled):active { transform: scale(0.97); }
-    .send-btn.loading { opacity: 0.7; }
+    /* Send button */
+    .send-btn { display:flex; align-items:center; justify-content:center; width:100%; background:var(--teal); color:#fff; font-size:16px; font-weight:700; padding:17px; border-radius:var(--r); border:none; cursor:pointer; margin-top:16px; font-family:inherit; transition:opacity .15s,transform .1s; }
+    .send-btn:disabled { opacity:0.4; cursor:not-allowed; }
+    .send-btn:not(:disabled):active { transform:scale(0.97); }
+    .disclaimer { text-align:center; font-size:12px; color:var(--textMuted); margin-top:10px; }
 
-    .send-disclaimer {
-      text-align: center;
-      font-size: 12px;
-      color: var(--textMuted);
-      margin-top: 10px;
-    }
+    /* Success */
+    .success-wrap { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh; text-align:center; padding:20px; animation:fadeUp .4s ease; }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    .success-icon { width:80px; height:80px; border-radius:40px; background:var(--tealDim); border:2px solid var(--teal); display:flex; align-items:center; justify-content:center; font-size:36px; margin-bottom:24px; }
+    .success-title { font-size:26px; font-weight:800; margin-bottom:10px; }
+    .success-sub { color:var(--textSec); font-size:15px; line-height:1.55; margin-bottom:20px; max-width:300px; }
+    .success-rec { color:var(--tealLight); font-weight:700; }
+    .success-anon { font-size:13px; color:var(--textMuted); background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:10px 16px; margin-bottom:28px; }
+    .another-btn { background:var(--tealDim); color:var(--tealLight); border:1.5px solid rgba(13,148,136,0.3); border-radius:var(--r); padding:14px 28px; font-size:15px; font-weight:600; cursor:pointer; font-family:inherit; }
+    .another-btn:active { background:rgba(13,148,136,0.25); }
 
-    /* ── Success state ───────────────────────────────────────────── */
-    .success-wrap {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 70vh;
-      text-align: center;
-      padding: 20px;
-      animation: fadeUp 0.4s ease;
-    }
-    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
-    .success-icon-wrap {
-      width: 80px;
-      height: 80px;
-      border-radius: 40px;
-      background: var(--tealDim);
-      border: 2px solid var(--teal);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 36px;
-      margin-bottom: 24px;
-    }
-    .success-title { font-size: 26px; font-weight: 800; margin-bottom: 10px; }
-    .success-sub { color: var(--textSec); font-size: 15px; line-height: 1.55; margin-bottom: 32px; max-width: 300px; }
-    .success-recipient { color: var(--tealLight); font-weight: 700; }
-    .success-anon {
-      font-size: 13px;
-      color: var(--textMuted);
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 10px 16px;
-      margin-bottom: 32px;
-    }
-    .send-another-btn {
-      background: var(--tealDim);
-      color: var(--tealLight);
-      border: 1.5px solid rgba(13,148,136,0.3);
-      border-radius: var(--radius);
-      padding: 14px 28px;
-      font-size: 15px;
-      font-weight: 600;
-      cursor: pointer;
-      font-family: inherit;
-      transition: background 0.15s;
-    }
-    .send-another-btn:active { background: rgba(13,148,136,0.25); }
+    /* App CTA */
+    .app-cta { margin-top:40px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r); padding:20px; text-align:center; }
+    .app-cta-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+    .app-cta-sub { font-size:13px; color:var(--textSec); margin-bottom:14px; line-height:1.5; }
+    .app-btn { display:inline-block; background:var(--teal); color:#fff; font-size:13px; font-weight:700; padding:10px 20px; border-radius:10px; text-decoration:none; }
 
-    /* ── Get the app CTA ─────────────────────────────────────────── */
-    .app-cta {
-      margin-top: 48px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 20px;
-      text-align: center;
-    }
-    .app-cta-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
-    .app-cta-sub { font-size: 13px; color: var(--textSec); margin-bottom: 14px; line-height: 1.5; }
-    .app-store-btn {
-      display: inline-block;
-      background: var(--teal);
-      color: white;
-      font-size: 13px;
-      font-weight: 700;
-      padding: 10px 20px;
-      border-radius: 10px;
-      text-decoration: none;
-    }
+    /* Footer */
+    .footer { text-align:center; margin-top:40px; padding-top:20px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; }
+    .footer a { font-size:12px; color:var(--textMuted); text-decoration:none; }
 
-    /* ── Footer ──────────────────────────────────────────────────── */
-    .footer {
-      text-align: center;
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 16px;
-      flex-wrap: wrap;
-    }
-    .footer a { font-size: 12px; color: var(--textMuted); text-decoration: none; }
-    .footer a:hover { color: var(--textSec); }
+    /* Gen loading overlay on options */
+    .gen-loading { display:flex; align-items:center; justify-content:center; gap:10px; padding:24px; color:var(--textSec); font-size:14px; }
   </style>
 </head>
 <body>
 
-  <div class="topbar">
-    <a href="/" class="logo">chitzy</a>
-    <a href="https://apps.apple.com/app/chitzy" class="app-badge">Get the app ↗</a>
+<div class="topbar">
+  <a href="/" class="logo">chitzy</a>
+  <a href="https://apps.apple.com/app/chitzy" class="get-app">Get the app ↗</a>
+</div>
+
+<!-- Loading -->
+<div id="s-loading" class="state wrap">
+  <div class="spinner-wrap"><div class="spinner"></div><p class="spin-text">Loading...</p></div>
+</div>
+
+<!-- Error -->
+<div id="s-error" class="state wrap">
+  <div class="err-wrap">
+    <div class="err-emoji">😕</div>
+    <h2 class="err-title" id="err-title">User not found</h2>
+    <p class="err-sub" id="err-sub">This link doesn't exist. Check the username and try again.</p>
+  </div>
+</div>
+
+<!-- Send form -->
+<div id="s-send" class="state wrap">
+
+  <p class="hero-label">Anonymous message</p>
+  <div class="rcpt-card">
+    <div class="rcpt-av" id="rcpt-av">?</div>
+    <div class="rcpt-info">
+      <div class="rcpt-lbl">Sending to</div>
+      <div class="rcpt-name" id="rcpt-name">@...</div>
+    </div>
+    <span class="anon-chip">🔒 Anonymous</span>
   </div>
 
-  <!-- Loading -->
-  <div id="state-loading" class="container">
-    <div class="loading-wrap">
-      <div class="spinner"></div>
-      <p class="loading-text">Loading...</p>
+  <!-- Quick send templates -->
+  <div id="tpl-section" style="display:none">
+    <p class="sec-head">⚡ Quick Send</p>
+    <div class="tpl-list" id="tpl-list"></div>
+  </div>
+
+  <!-- Divider -->
+  <div class="divider">
+    <div class="divider-line"></div>
+    <span class="divider-txt">or write a message</span>
+    <div class="divider-line"></div>
+  </div>
+
+  <!-- Thought input -->
+  <p class="thought-label">What do you want to say?</p>
+  <p class="thought-hint">Type your thoughts — our AI will turn them into kind, anonymous messages for you to pick from.</p>
+  <div class="thought-wrap">
+    <textarea id="thought-input" placeholder="e.g. I really admire how they handle everything so calmly..." maxlength="200" rows="3"></textarea>
+    <div class="char-row"><span class="char-ct" id="char-ct">0 / 200</span></div>
+  </div>
+  <button class="gen-btn" id="gen-btn" disabled>✨ Generate messages</button>
+
+  <!-- AI Options (shown after generation) -->
+  <div id="options-section">
+    <div class="options-header">
+      <p class="sec-head" style="margin:0">Pick your message</p>
+      <span class="ai-tag"><span class="ai-dot"></span>AI Generated</span>
+    </div>
+    <p class="options-hint">Only these options can be sent — keeping it kind 💜</p>
+    <div class="opt-list" id="opt-list"></div>
+  </div>
+
+  <!-- Selected preview -->
+  <div class="preview" id="preview">
+    <div class="preview-lbl">Sending:</div>
+    <div class="preview-txt" id="preview-txt"></div>
+  </div>
+
+  <!-- Send button -->
+  <button class="send-btn" id="send-btn" disabled>Send Anonymously →</button>
+  <p class="disclaimer">🔒 The recipient will never know it was you</p>
+
+  <!-- App CTA -->
+  <div class="app-cta" style="margin-top:48px">
+    <div class="app-cta-title">Want to receive anonymous messages too?</div>
+    <div class="app-cta-sub">Get Chitzy and share your own link with friends.</div>
+    <a href="https://apps.apple.com/app/chitzy" class="app-btn">Download on App Store</a>
+  </div>
+  <div class="footer">
+    <a href="/privacy">Privacy</a>
+    <a href="/help">Help</a>
+    <a href="/terms">Terms</a>
+  </div>
+</div>
+
+<!-- Success -->
+<div id="s-success" class="state wrap">
+  <div class="success-wrap">
+    <div class="success-icon">💬</div>
+    <h2 class="success-title">Message sent! 🎉</h2>
+    <p class="success-sub">Your anonymous message was delivered to<br><span class="success-rec" id="success-rec">@...</span></p>
+    <p class="success-anon">🔒 They'll never know it was you</p>
+    <button class="another-btn" id="another-btn">Send another →</button>
+    <div class="app-cta" style="margin-top:32px;width:100%">
+      <div class="app-cta-title">Want to receive anonymous messages?</div>
+      <div class="app-cta-sub">Get Chitzy and share your own link.</div>
+      <a href="https://apps.apple.com/app/chitzy" class="app-btn">Download on App Store</a>
     </div>
   </div>
+</div>
 
-  <!-- Error -->
-  <div id="state-error" class="container">
-    <div class="error-wrap">
-      <div class="error-emoji">😕</div>
-      <h2 class="error-title" id="error-title">User not found</h2>
-      <p class="error-sub" id="error-sub">This Chitzy link doesn't exist. Double-check the username and try again.</p>
-    </div>
-  </div>
+<script>
+const SUPABASE_URL  = 'https://hupqcccvzkgetxrausda.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1cHFjY2N2emtnZXR4cmF1c2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTcwNTQsImV4cCI6MjA4OTY3MzA1NH0.iwB-odabUyF6TUDwC2Frf-nBzwzp_WT_ILFNZV2QyXs';
+const EDGE_BASE     = 'https://hupqcccvzkgetxrausda.supabase.co/functions/v1';
 
-  <!-- Send form -->
-  <div id="state-send" class="container">
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-    <div class="hero">
-      <p class="hero-label">Anonymous message</p>
-      <div class="recipient-card">
-        <div class="recipient-avatar" id="recipient-avatar">?</div>
-        <div class="recipient-info">
-          <div class="recipient-label">Sending to</div>
-          <div class="recipient-name" id="recipient-display-name">@...</div>
-        </div>
-        <span class="anon-badge">🔒 Anonymous</span>
+// ── State ─────────────────────────────────────────────────────────
+let recipientId   = null;
+let recipientName = '';
+// { text, token } for AI options  OR  { templateId } for quick send
+let pendingSend   = null;
+
+// ── DOM ───────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const states = ['s-loading','s-error','s-send','s-success'];
+function show(id) { states.forEach(s => $(s).classList.toggle('on', s === id)); }
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function getUsername() {
+  const p = new URLSearchParams(location.search);
+  const u = p.get('to') || p.get('u');
+  if (u) return u;
+  const path = location.pathname.replace(/^\//, '').replace(/\/$/, '');
+  return (path && path !== 'send') ? path : null;
+}
+
+// ── Init ──────────────────────────────────────────────────────────
+async function init() {
+  show('s-loading');
+  const username = getUsername();
+  if (!username) { showErr('No username', 'Add a username: chitzy.in/YourName'); return; }
+
+  const { data: user, error } = await db
+    .from('users').select('id, chitzy_name').ilike('chitzy_name', username).single();
+
+  if (error || !user) {
+    showErr('User not found', `@${username} doesn't exist on Chitzy.`);
+    return;
+  }
+
+  recipientId   = user.id;
+  recipientName = user.chitzy_name;
+  $('rcpt-av').textContent    = recipientName.charAt(0).toUpperCase();
+  $('rcpt-name').textContent  = '@' + recipientName;
+  $('success-rec').textContent= '@' + recipientName;
+  document.title = `Send @${recipientName} an anonymous message — Chitzy`;
+
+  // Load today's templates + categories
+  const today = new Date().toISOString().split('T')[0];
+  const [tplRes, catRes] = await Promise.all([
+    db.from('trending_templates').select('id,text,category_id,likes').eq('active_date', today).order('likes',{ascending:false}).limit(9),
+    db.from('categories').select('id,name,emoji,color'),
+  ]);
+
+  const catMap = {};
+  (catRes.data||[]).forEach(c => catMap[c.id] = c);
+
+  if (tplRes.data?.length) {
+    const seen=new Set(), d=[], r=[];
+    for (const t of tplRes.data) seen.has(t.category_id) ? r.push(t) : (seen.add(t.category_id), d.push(t));
+    renderTemplates([...d,...r].slice(0,6), catMap);
+    $('tpl-section').style.display = 'block';
+  }
+
+  show('s-send');
+}
+
+function showErr(title, sub) {
+  $('err-title').textContent = title;
+  $('err-sub').textContent   = sub;
+  show('s-error');
+}
+
+// ── Templates ─────────────────────────────────────────────────────
+function renderTemplates(templates, catMap) {
+  const list = $('tpl-list');
+  list.innerHTML = '';
+  templates.forEach(t => {
+    const cat   = catMap[t.category_id] || {};
+    const color = cat.color || '#0D9488';
+    const card  = document.createElement('div');
+    card.className = 'tpl-card';
+    card.innerHTML = `
+      <div class="tpl-accent" style="background:${color}"></div>
+      <div class="tpl-body">
+        <div class="tpl-text">${escHtml(t.text)}</div>
+        ${cat.name ? `<span class="tpl-cat" style="background:${color}20;color:${color}">${cat.emoji||''} ${cat.name}</span>` : ''}
       </div>
-    </div>
+      <div class="tpl-check">✓</div>`;
+    card.addEventListener('click', () => selectTemplate(t, card, templates));
+    list.appendChild(card);
+  });
+}
 
-    <!-- Quick send templates -->
-    <div id="templates-section" style="display:none">
-      <p class="section-label">⚡ Quick Send</p>
-      <div class="templates" id="templates-list"></div>
-    </div>
+function selectTemplate(t, card, allTemplates) {
+  document.querySelectorAll('.tpl-card,.opt-card').forEach(c => c.classList.remove('sel'));
+  $('thought-input').value = '';
+  updateChar();
+  hideOptions();
 
-    <!-- Divider -->
-    <div class="divider">
-      <div class="divider-line"></div>
-      <span class="divider-text">or write your own</span>
-      <div class="divider-line"></div>
-    </div>
+  card.classList.add('sel');
+  pendingSend = { templateId: t.id };
+  showPreview(t.text);
+  $('send-btn').disabled = false;
+}
 
-    <!-- Free text input -->
-    <div class="input-wrap">
-      <textarea
-        id="message-input"
-        placeholder="Write something kind, funny, or heartfelt..."
-        maxlength="300"
-        rows="4"
-      ></textarea>
-      <div class="char-count" id="char-count">0 / 300</div>
-    </div>
+// ── Thought input ─────────────────────────────────────────────────
+$('thought-input').addEventListener('input', () => {
+  updateChar();
+  const val = $('thought-input').value.trim();
+  $('gen-btn').disabled = !val;
+  // If they type after picking, clear selection
+  if (val && pendingSend) {
+    document.querySelectorAll('.tpl-card,.opt-card').forEach(c => c.classList.remove('sel'));
+    pendingSend = null;
+    hidePreview();
+    $('send-btn').disabled = true;
+  }
+});
 
-    <!-- Selected preview -->
-    <div class="selected-preview" id="selected-preview">
-      <div class="preview-label">Sending:</div>
-      <div class="preview-text" id="preview-text"></div>
-    </div>
+function updateChar() {
+  const len = $('thought-input').value.length;
+  $('char-ct').textContent = `${len} / 200`;
+}
 
-    <!-- Send button -->
-    <button class="send-btn" id="send-btn" disabled>
-      Send Anonymously →
-    </button>
-    <p class="send-disclaimer">🔒 The recipient will never know it was you</p>
+// ── Generate ──────────────────────────────────────────────────────
+$('gen-btn').addEventListener('click', generateMessages);
 
-    <!-- Get the app -->
-    <div class="app-cta">
-      <div class="app-cta-title">Want to receive anonymous messages too?</div>
-      <div class="app-cta-sub">Get Chitzy and share your own link with friends.</div>
-      <a href="https://apps.apple.com/app/chitzy" class="app-store-btn">Download on App Store</a>
-    </div>
+async function generateMessages() {
+  const input = $('thought-input').value.trim();
+  if (!input) return;
 
-    <div class="footer">
-      <a href="/privacy">Privacy</a>
-      <a href="/help">Help</a>
-      <a href="/terms">Terms</a>
-    </div>
-  </div>
+  $('gen-btn').disabled  = true;
+  $('gen-btn').textContent = '✨ Generating...';
+  pendingSend = null;
+  hidePreview();
+  $('send-btn').disabled = true;
 
-  <!-- Success -->
-  <div id="state-success" class="container">
-    <div class="success-wrap">
-      <div class="success-icon-wrap">💬</div>
-      <h2 class="success-title">Message sent! 🎉</h2>
-      <p class="success-sub">
-        Your anonymous message was delivered to<br>
-        <span class="success-recipient" id="success-recipient">@...</span>
-      </p>
-      <p class="success-anon">🔒 They'll never know it was you</p>
-      <button class="send-another-btn" id="send-another-btn">Send another →</button>
+  // Show loading state in options area
+  const sec = $('options-section');
+  sec.classList.add('on');
+  $('opt-list').innerHTML = `<div class="gen-loading"><div class="spinner" style="width:20px;height:20px;border-width:2px"></div> Crafting kind messages…</div>`;
 
-      <div class="app-cta" style="margin-top: 32px; width: 100%;">
-        <div class="app-cta-title">Want to receive anonymous messages?</div>
-        <div class="app-cta-sub">Get Chitzy and share your own link with friends.</div>
-        <a href="https://apps.apple.com/app/chitzy" class="app-store-btn">Download on App Store</a>
-      </div>
-    </div>
-  </div>
-
-  <script>
-    const SUPABASE_URL  = 'https://hupqcccvzkgetxrausda.supabase.co';
-    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1cHFjY2N2emtnZXR4cmF1c2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTcwNTQsImV4cCI6MjA4OTY3MzA1NH0.iwB-odabUyF6TUDwC2Frf-nBzwzp_WT_ILFNZV2QyXs';
-
-    const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
-    // ── State ──────────────────────────────────────────────────────
-    let recipientId   = null;
-    let recipientName = '';
-    let selectedText  = '';
-    let selectedCatId = null;
-    let templates     = [];
-
-    // ── DOM refs ───────────────────────────────────────────────────
-    const $loading      = document.getElementById('state-loading');
-    const $error        = document.getElementById('state-error');
-    const $send         = document.getElementById('state-send');
-    const $success      = document.getElementById('state-success');
-    const $errorTitle   = document.getElementById('error-title');
-    const $errorSub     = document.getElementById('error-sub');
-    const $avatar       = document.getElementById('recipient-avatar');
-    const $displayName  = document.getElementById('recipient-display-name');
-    const $templatesSec = document.getElementById('templates-section');
-    const $templatesList= document.getElementById('templates-list');
-    const $input        = document.getElementById('message-input');
-    const $charCount    = document.getElementById('char-count');
-    const $preview      = document.getElementById('selected-preview');
-    const $previewText  = document.getElementById('preview-text');
-    const $sendBtn      = document.getElementById('send-btn');
-    const $successRec   = document.getElementById('success-recipient');
-    const $sendAnotherBtn = document.getElementById('send-another-btn');
-
-    function show(el) {
-      [$loading, $error, $send, $success].forEach(e => e.classList.remove('active'));
-      el.classList.add('active');
-    }
-
-    // ── Get username from URL ──────────────────────────────────────
-    // Supports: /send?to=username  AND  /username (via 404 redirect)
-    function getUsernameFromUrl() {
-      const params = new URLSearchParams(window.location.search);
-      const fromParam = params.get('to') || params.get('u');
-      if (fromParam) return fromParam;
-      // fallback: path-based (e.g. /SilentPanda42)
-      const path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
-      if (path && path !== 'send') return path;
-      return null;
-    }
-
-    // ── Init ───────────────────────────────────────────────────────
-    async function init() {
-      show($loading);
-
-      const username = getUsernameFromUrl();
-      if (!username) {
-        showError('No username', 'Add a username to the URL to send a message, e.g. chitzy.in/SilentPanda42');
-        return;
-      }
-
-      // Look up recipient
-      const { data: user, error: userErr } = await db
-        .from('users')
-        .select('id, chitzy_name')
-        .ilike('chitzy_name', username)
-        .single();
-
-      if (userErr || !user) {
-        showError('User not found', `@${username} doesn't exist on Chitzy. Check the link and try again.`);
-        return;
-      }
-
-      recipientId   = user.id;
-      recipientName = user.chitzy_name;
-
-      $avatar.textContent       = recipientName.charAt(0).toUpperCase();
-      $displayName.textContent  = '@' + recipientName;
-      $successRec.textContent   = '@' + recipientName;
-
-      // Update page title + OG
-      document.title = `Send @${recipientName} an anonymous message — Chitzy`;
-
-      // Load today's trending templates + categories in parallel
-      const today = new Date().toISOString().split('T')[0];
-      const [tplRes, catRes] = await Promise.all([
-        db.from('trending_templates')
-          .select('id, text, category_id, likes')
-          .eq('active_date', today)
-          .order('likes', { ascending: false })
-          .limit(9),
-        db.from('categories').select('id, name, emoji, color'),
-      ]);
-
-      const catMap = {};
-      (catRes.data || []).forEach(c => { catMap[c.id] = c; });
-
-      if (tplRes.data?.length) {
-        // Diversity: one per category first
-        const seen = new Set(), diverse = [], rest = [];
-        for (const t of tplRes.data) {
-          if (!seen.has(t.category_id)) { seen.add(t.category_id); diverse.push(t); }
-          else rest.push(t);
-        }
-        templates = [...diverse, ...rest].slice(0, 6);
-        renderTemplates(catMap);
-        $templatesSec.style.display = 'block';
-      }
-
-      show($send);
-    }
-
-    function showError(title, sub) {
-      $errorTitle.textContent = title;
-      $errorSub.textContent   = sub;
-      show($error);
-    }
-
-    // ── Render templates ───────────────────────────────────────────
-    function renderTemplates(catMap) {
-      $templatesList.innerHTML = '';
-      templates.forEach(t => {
-        const cat   = catMap[t.category_id] || {};
-        const color = cat.color || '#0D9488';
-
-        const card = document.createElement('div');
-        card.className = 'template-card';
-        card.dataset.id = t.id;
-        card.innerHTML = `
-          <div class="template-accent" style="background:${color}"></div>
-          <div class="template-body">
-            <div class="template-text">${escHtml(t.text)}</div>
-            ${cat.name ? `<span class="template-cat" style="background:${color}20;color:${color}">${cat.emoji || ''} ${cat.name}</span>` : ''}
-          </div>
-          <div class="template-check">✓</div>
-        `;
-        card.addEventListener('click', () => selectTemplate(t, card));
-        $templatesList.appendChild(card);
-      });
-    }
-
-    function selectTemplate(t, card) {
-      // Deselect all
-      document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
-      // Clear free-text
-      $input.value = '';
-      updateCharCount();
-
-      card.classList.add('selected');
-      selectedText  = t.text;
-      selectedCatId = t.category_id;
-      showPreview(t.text);
-      $sendBtn.disabled = false;
-    }
-
-    // ── Text input ─────────────────────────────────────────────────
-    $input.addEventListener('input', () => {
-      updateCharCount();
-      const val = $input.value.trim();
-      if (val) {
-        // Deselect any template
-        document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
-        selectedText  = val;
-        selectedCatId = null;
-        showPreview(val);
-        $sendBtn.disabled = false;
-      } else if (!selectedText) {
-        hidePreview();
-        $sendBtn.disabled = true;
-      }
+  try {
+    const resp = await fetch(`${EDGE_BASE}/generate-messages-web`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ input, recipientId, categoryName: 'Other', count: 3 }),
     });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Generation failed');
+    renderOptions(data.messages); // [{ text, token }]
+  } catch (e) {
+    $('opt-list').innerHTML = `<p style="color:var(--error);font-size:14px;padding:12px 0">Something went wrong. Please try again.</p>`;
+  } finally {
+    $('gen-btn').disabled  = false;
+    $('gen-btn').textContent = '🔄 Regenerate';
+  }
+}
 
-    function updateCharCount() {
-      const len = $input.value.length;
-      $charCount.textContent = `${len} / 300`;
-      $charCount.classList.toggle('warn', len > 250);
-    }
+function renderOptions(options) {
+  const list = $('opt-list');
+  list.innerHTML = '';
+  const colors = ['#0D9488','#F97316','#818CF8'];
+  options.forEach((opt, i) => {
+    const color = colors[i % colors.length];
+    const card  = document.createElement('div');
+    card.className = 'opt-card';
+    card.innerHTML = `
+      <div class="opt-accent" style="background:${color}"></div>
+      <div class="opt-num" style="color:${color}">Option 0${i+1}</div>
+      <div class="opt-text">${escHtml(opt.text)}</div>
+      <div class="opt-check" style="background:${color}">✓</div>`;
+    card.addEventListener('click', () => selectOption(opt, card));
+    list.appendChild(card);
+  });
+}
 
-    function showPreview(text) {
-      $previewText.textContent = text;
-      $preview.classList.add('visible');
-    }
+function selectOption(opt, card) {
+  document.querySelectorAll('.tpl-card,.opt-card').forEach(c => c.classList.remove('sel'));
+  card.classList.add('sel');
+  pendingSend = { text: opt.text, token: opt.token };
+  showPreview(opt.text);
+  $('send-btn').disabled = false;
+}
 
-    function hidePreview() {
-      $preview.classList.remove('visible');
-      $previewText.textContent = '';
-    }
+// ── Preview ───────────────────────────────────────────────────────
+function showPreview(text) {
+  $('preview-txt').textContent = text;
+  $('preview').classList.add('on');
+  setTimeout(() => $('preview').scrollIntoView({ behavior:'smooth', block:'nearest' }), 50);
+}
+function hidePreview() { $('preview').classList.remove('on'); }
+function hideOptions() {
+  $('options-section').classList.remove('on');
+  $('opt-list').innerHTML = '';
+  $('gen-btn').textContent = '✨ Generate messages';
+}
 
-    // ── Send ───────────────────────────────────────────────────────
-    $sendBtn.addEventListener('click', send);
+// ── Send ──────────────────────────────────────────────────────────
+$('send-btn').addEventListener('click', send);
 
-    async function send() {
-      const text = selectedText || $input.value.trim();
-      if (!text || !recipientId) return;
+async function send() {
+  if (!pendingSend || !recipientId) return;
+  $('send-btn').disabled     = true;
+  $('send-btn').textContent  = 'Sending...';
 
-      $sendBtn.disabled  = true;
-      $sendBtn.textContent = 'Sending...';
-      $sendBtn.classList.add('loading');
-
-      const { error } = await db.from('messages').insert({
-        recipient_id: recipientId,
-        sender_id:    null,
-        text:         text,
-        category_id:  selectedCatId || null,
-      });
-
-      if (error) {
-        $sendBtn.disabled  = false;
-        $sendBtn.textContent = 'Send Anonymously →';
-        $sendBtn.classList.remove('loading');
-        alert('Something went wrong. Please try again.');
-        console.error('Send error:', error.message);
-        return;
-      }
-
-      show($success);
-    }
-
-    // ── Send another ───────────────────────────────────────────────
-    $sendAnotherBtn.addEventListener('click', () => {
-      selectedText  = '';
-      selectedCatId = null;
-      $input.value  = '';
-      $sendBtn.disabled = true;
-      $sendBtn.textContent = 'Send Anonymously →';
-      $sendBtn.classList.remove('loading');
-      hidePreview();
-      document.querySelectorAll('.template-card').forEach(c => c.classList.remove('selected'));
-      show($send);
+  try {
+    const body = { recipientId, ...pendingSend };
+    const resp = await fetch(`${EDGE_BASE}/send-message-web`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
     });
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.error || 'Send failed');
+    show('s-success');
+  } catch (e) {
+    alert('Could not send message. Please try again.');
+    $('send-btn').disabled    = false;
+    $('send-btn').textContent = 'Send Anonymously →';
+  }
+}
 
-    // ── Utils ──────────────────────────────────────────────────────
-    function escHtml(str) {
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-    }
+// ── Send another ──────────────────────────────────────────────────
+$('another-btn').addEventListener('click', () => {
+  pendingSend = null;
+  $('thought-input').value   = '';
+  $('gen-btn').textContent   = '✨ Generate messages';
+  $('gen-btn').disabled      = true;
+  $('send-btn').disabled     = true;
+  updateChar();
+  hidePreview();
+  hideOptions();
+  document.querySelectorAll('.tpl-card,.opt-card').forEach(c => c.classList.remove('sel'));
+  show('s-send');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
 
-    // ── Boot ───────────────────────────────────────────────────────
-    init();
-  </script>
+init();
+</script>
 </body>
 </html>
