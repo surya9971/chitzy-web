@@ -72,7 +72,7 @@
     <div class="tagline">Anonymous messages. Real connections.</div>
 
     <h1>Privacy Policy</h1>
-    <div class="updated">Last updated: March 25, 2026</div>
+    <div class="updated">Last updated: March 26, 2026</div>
 
     <p>Chitzy ("we", "our", or "us") operates the Chitzy mobile application. This Privacy Policy explains how we collect, use, and protect your information when you use our app.</p>
     <p>By using Chitzy, you agree to the collection and use of information as described in this policy.</p>
@@ -99,6 +99,14 @@
       <ul>
         <li>Expo push notification token (to deliver notifications)</li>
         <li>Device type (iOS / Android) for notification delivery</li>
+        <li>Anonymous device identifier (a randomly generated UUID stored on your device) used solely for safety enforcement — e.g. to prevent re-registration after a permanent suspension</li>
+      </ul>
+      <hr style="border-color:rgba(255,255,255,0.06); margin:16px 0" />
+      <p><strong style="color:#F1F5F9">Reports & Moderation Data</strong></p>
+      <ul>
+        <li>If you submit a report: the reported message, your user ID, and the reason you selected are stored for moderation review</li>
+        <li>If a report is filed against you: the reported message text and the action taken (if any) are stored in our moderation logs</li>
+        <li>Reports are visible only to Chitzy's moderation team and are never shared publicly</li>
       </ul>
     </div>
 
@@ -120,10 +128,12 @@
     <div class="card">
       <ul>
         <li><strong style="color:#F1F5F9">Keyword filter</strong> — An instant blocklist screens messages for known offensive words and slurs across 30+ languages including all major Indian languages.</li>
-        <li><strong style="color:#F1F5F9">AI content review</strong> — Messages are analysed by OpenAI's Moderation API to detect hate speech, racism, colorism, body shaming, harassment, threats, and sexual content before delivery.</li>
+        <li><strong style="color:#F1F5F9">AI content review</strong> — Messages are analysed by an AI model to detect hate speech, racism, colorism, body shaming, indirect insults, sarcastic put-downs, harassment, threats, and sexual content — including indirect or coded language common in Indian usage.</li>
         <li><strong style="color:#F1F5F9">Strike system</strong> — Sending content that violates our guidelines results in a warning strike. Free users are blocked from sending for 24 hours after 5 violations; Pro users after 10. Strikes reset daily.</li>
+        <li><strong style="color:#F1F5F9">User reports</strong> — Any message can be reported by the recipient using the in-app report button. Reports are reviewed by our moderation team. Users reported by multiple people may be automatically or manually suspended.</li>
+        <li><strong style="color:#F1F5F9">Admin moderation</strong> — Our team can issue temporary blocks (3, 7, or 30 days) or permanent account suspensions for serious or repeated violations. Permanently suspended accounts have their phone number and device ID blocked to prevent re-registration.</li>
       </ul>
-      <p style="margin-top:12px; margin-bottom:0">Message text is sent to OpenAI's API solely for moderation. OpenAI does not store or train on this data. See <a href="https://openai.com/policies/privacy-policy" target="_blank">OpenAI's Privacy Policy</a>.</p>
+      <p style="margin-top:12px; margin-bottom:0">Message text is sent to an AI API solely for moderation purposes. The AI provider does not store or train on this data.</p>
     </div>
 
     <h2>5. Third-Party Services</h2>
