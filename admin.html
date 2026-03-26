@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chitzy Admin — Moderation</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #070C0B;
+      color: #F1F5F9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 14px;
+      min-height: 100vh;
+    }
+
+    /* ── LOGIN ── */
+    #login-screen {
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh;
+    }
+    .login-box {
+      background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 40px;
+      width: 360px;
+    }
+    .login-box h1 { font-size: 24px; font-weight: 800; color: #0D9488; margin-bottom: 4px; }
+    .login-box p  { color: #475569; font-size: 13px; margin-bottom: 28px; }
+    .login-box input {
+      width: 100%; padding: 12px 16px;
+      background: #162019; border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 10px; color: #F1F5F9; font-size: 14px;
+      margin-bottom: 12px; outline: none;
+    }
+    .login-box input:focus { border-color: #0D9488; }
+    .btn-primary {
+      width: 100%; padding: 12px; background: #0D9488;
+      border: none; border-radius: 10px; color: #fff;
+      font-size: 15px; font-weight: 600; cursor: pointer;
+    }
+    .btn-primary:hover { background: #0f7a70; }
+    .login-error { color: #F87171; font-size: 13px; margin-top: 10px; text-align: center; }
+
+    /* ── MAIN ── */
+    #main-screen { display: none; }
+    .topbar {
+      background: #0F1714;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+      position: sticky; top: 0; z-index: 100;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 12px; }
+    .topbar h1 { font-size: 18px; font-weight: 800; color: #0D9488; }
+    .topbar-stats { display: flex; gap: 16px; }
+    .stat-pill {
+      background: rgba(13,148,136,0.1); border: 1px solid rgba(13,148,136,0.2);
+      border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #5EEAD4;
+    }
+    .stat-pill.red { background: rgba(248,113,113,0.1); border-color: rgba(248,113,113,0.2); color: #F87171; }
+    .stat-pill.orange { background: rgba(249,115,22,0.1); border-color: rgba(249,115,22,0.2); color: #FB923C; }
+    .btn-logout {
+      background: transparent; border: 1px solid rgba(255,255,255,0.12);
+      color: #475569; padding: 6px 14px; border-radius: 8px;
+      cursor: pointer; font-size: 13px;
+    }
+    .btn-logout:hover { border-color: #F87171; color: #F87171; }
+
+    /* ── FILTERS ── */
+    .filters {
+      padding: 16px 24px;
+      display: flex; gap: 8px; align-items: center; flex-wrap: wrap;
+    }
+    .filter-btn {
+      padding: 6px 16px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);
+      background: transparent; color: #94A3B8; cursor: pointer; font-size: 13px;
+    }
+    .filter-btn.active { background: #0D9488; border-color: #0D9488; color: #fff; }
+    .search-input {
+      padding: 7px 14px; background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 20px;
+      color: #F1F5F9; font-size: 13px; outline: none; width: 220px; margin-left: auto;
+    }
+    .search-input:focus { border-color: #0D9488; }
+
+    /* ── TABLE ── */
+    .table-wrap { padding: 0 24px 40px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 900px; }
+    thead th {
+      text-align: left; padding: 10px 12px;
+      color: #475569; font-size: 11px; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    tbody tr:hover { background: rgba(255,255,255,0.02); }
+    tbody tr.auto-blocked { background: rgba(248,113,113,0.05); }
+    tbody tr.actioned { opacity: 0.4; }
+    td { padding: 12px; vertical-align: middle; }
+
+    .user-cell { display: flex; flex-direction: column; gap: 2px; }
+    .user-name { font-weight: 600; color: #F1F5F9; font-size: 13px; }
+    .user-phone { color: #475569; font-size: 11px; font-family: monospace; }
+    .user-meta { color: #475569; font-size: 11px; }
+    .plan-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: 700;
+    }
+    .plan-badge.pro { background: rgba(249,115,22,0.2); color: #FB923C; }
+    .plan-badge.free { background: rgba(255,255,255,0.06); color: #475569; }
+
+    .msg-cell {
+      max-width: 260px; color: #94A3B8; font-size: 13px;
+      line-height: 1.5; word-break: break-word;
+    }
+
+    .report-count {
+      font-size: 22px; font-weight: 800; text-align: center;
+    }
+    .report-count.high { color: #F87171; }
+    .report-count.med  { color: #FB923C; }
+    .report-count.low  { color: #5EEAD4; }
+
+    .status-badge {
+      display: inline-block; padding: 3px 8px; border-radius: 6px;
+      font-size: 11px; font-weight: 600; white-space: nowrap;
+    }
+    .status-badge.pending  { background: rgba(249,115,22,0.15); color: #FB923C; }
+    .status-badge.reviewed { background: rgba(255,255,255,0.06); color: #475569; }
+    .status-badge.actioned { background: rgba(52,211,153,0.15); color: #34D399; }
+
+    .block-status { font-size: 12px; }
+    .block-status.perm    { color: #F87171; font-weight: 600; }
+    .block-status.temp    { color: #FB923C; }
+    .block-status.clean   { color: #475569; }
+
+    .actions-cell { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
+    .action-row   { display: flex; gap: 4px; }
+    .btn-action {
+      flex: 1; padding: 6px 8px; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1); background: transparent;
+      color: #94A3B8; font-size: 11px; cursor: pointer; text-align: center;
+      white-space: nowrap;
+    }
+    .btn-action:hover { border-color: #0D9488; color: #0D9488; background: rgba(13,148,136,0.08); }
+    .btn-action.danger:hover { border-color: #F87171; color: #F87171; background: rgba(248,113,113,0.08); }
+    .btn-action.perm:hover { border-color: #F87171; color: #fff; background: #F87171; }
+    .btn-action.nothing:hover { border-color: #34D399; color: #34D399; background: rgba(52,211,153,0.08); }
+
+    .note-input {
+      width: 100%; padding: 5px 8px; background: #162019;
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 6px;
+      color: #94A3B8; font-size: 11px; outline: none; resize: none;
+    }
+    .note-input:focus { border-color: rgba(13,148,136,0.4); }
+
+    .time-cell { color: #475569; font-size: 11px; white-space: nowrap; }
+
+    /* ── EMPTY / LOADING ── */
+    .empty-state {
+      text-align: center; padding: 60px 20px; color: #475569;
+    }
+    .empty-state h3 { font-size: 18px; color: #94A3B8; margin-bottom: 8px; }
+    .loading-row td { text-align: center; padding: 40px; color: #475569; }
+
+    /* ── TOAST ── */
+    #toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: #0F1714; border: 1px solid rgba(13,148,136,0.3);
+      border-radius: 12px; padding: 12px 20px;
+      color: #F1F5F9; font-size: 14px; font-weight: 500;
+      opacity: 0; transform: translateY(8px);
+      transition: all 0.25s; pointer-events: none; z-index: 999;
+    }
+    #toast.show { opacity: 1; transform: translateY(0); }
+    #toast.error { border-color: rgba(248,113,113,0.3); }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="login-box">
+    <h1>chitzy</h1>
+    <p>Admin Moderation Dashboard</p>
+    <input type="password" id="admin-pass" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()" />
+    <button class="btn-primary" onclick="login()">Sign In →</button>
+    <div class="login-error" id="login-error"></div>
+  </div>
+</div>
+
+<!-- MAIN DASHBOARD -->
+<div id="main-screen">
+  <div class="topbar">
+    <div class="topbar-left">
+      <h1>chitzy admin</h1>
+      <div class="topbar-stats">
+        <span class="stat-pill red"  id="stat-pending">— pending</span>
+        <span class="stat-pill orange" id="stat-autoblock">— auto-blocked</span>
+        <span class="stat-pill" id="stat-total">— total</span>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-primary" style="width:auto;padding:7px 16px;font-size:13px" onclick="loadReports()">↻ Refresh</button>
+      <button class="btn-logout" onclick="logout()">Sign Out</button>
+    </div>
+  </div>
+
+  <div class="filters">
+    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
+    <button class="filter-btn" onclick="setFilter('pending',this)">Pending</button>
+    <button class="filter-btn" onclick="setFilter('actioned',this)">Actioned</button>
+    <button class="filter-btn" onclick="setFilter('reviewed',this)">Reviewed</button>
+    <button class="filter-btn" onclick="setFilter('blocked',this)">Blocked Users</button>
+    <input class="search-input" type="text" placeholder="Search name / phone / message…" oninput="applySearch(this.value)" />
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Reported User</th>
+          <th>Message</th>
+          <th style="text-align:center">Unique<br>Reporters</th>
+          <th>Block Status</th>
+          <th>Report Date</th>
+          <th>Status</th>
+          <th style="min-width:190px">Actions</th>
+        </tr>
+      </thead>
+      <tbody id="reports-tbody">
+        <tr class="loading-row"><td colspan="7">Loading reports…</td></tr>
+      </tbody>
+    </table>
+    <div id="empty-state" class="empty-state" style="display:none">
+      <h3>No reports found</h3>
+      <p>Nothing matches your current filter.</p>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const EDGE = 'https://hupqcccvzkgetxrausda.supabase.co/functions/v1/admin-action';
+let adminPassword = '';
+let allReports = [];
+let currentFilter = 'all';
+let searchQuery = '';
+
+// ── AUTH ─────────────────────────────────────────────────────────────────────
+async function login() {
+  const pass = document.getElementById('admin-pass').value.trim();
+  if (!pass) return;
+  document.getElementById('login-error').textContent = '';
+
+  // Test the password by calling get_reports
+  const res = await callAdmin({ action: 'get_reports' }, pass);
+  if (res.error === 'Unauthorized') {
+    document.getElementById('login-error').textContent = 'Wrong password.';
+    return;
+  }
+  adminPassword = pass;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+  processReports(res.reports || []);
+}
+
+function logout() {
+  adminPassword = '';
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('main-screen').style.display = 'none';
+  document.getElementById('admin-pass').value = '';
+}
+
+// ── API ───────────────────────────────────────────────────────────────────────
+async function callAdmin(body, pass) {
+  try {
+    const res = await fetch(EDGE, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-admin-password': pass || adminPassword,
+      },
+      body: JSON.stringify(body),
+    });
+    return await res.json();
+  } catch (e) {
+    return { error: e.message };
+  }
+}
+
+async function loadReports() {
+  document.getElementById('reports-tbody').innerHTML =
+    '<tr class="loading-row"><td colspan="7">Loading…</td></tr>';
+  const res = await callAdmin({ action: 'get_reports' });
+  if (res.error) { showToast('Error: ' + res.error, true); return; }
+  processReports(res.reports || []);
+}
+
+// ── DATA ──────────────────────────────────────────────────────────────────────
+function processReports(reports) {
+  allReports = reports;
+
+  // Stats
+  const pending   = reports.filter(r => r.status === 'pending').length;
+  const autoBlocked = reports.filter(r => r.reported_user?.is_permanently_blocked).length;
+  document.getElementById('stat-pending').textContent   = `${pending} pending`;
+  document.getElementById('stat-autoblock').textContent = `${autoBlocked} auto-blocked`;
+  document.getElementById('stat-total').textContent     = `${reports.length} total`;
+
+  renderTable();
+}
+
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  renderTable();
+}
+
+function applySearch(q) {
+  searchQuery = q.toLowerCase();
+  renderTable();
+}
+
+function renderTable() {
+  let rows = allReports;
+
+  // Filter
+  if (currentFilter === 'pending')   rows = rows.filter(r => r.status === 'pending');
+  if (currentFilter === 'actioned')  rows = rows.filter(r => r.status === 'actioned');
+  if (currentFilter === 'reviewed')  rows = rows.filter(r => r.status === 'reviewed');
+  if (currentFilter === 'blocked')   rows = rows.filter(r => r.reported_user?.is_permanently_blocked || r.reported_user?.admin_blocked_until);
+
+  // Search
+  if (searchQuery) {
+    rows = rows.filter(r =>
+      (r.reported_user?.chitzy_name || '').toLowerCase().includes(searchQuery) ||
+      (r.reported_user_phone || '').includes(searchQuery) ||
+      (r.reported_message_text || '').toLowerCase().includes(searchQuery)
+    );
+  }
+
+  const tbody = document.getElementById('reports-tbody');
+  const empty = document.getElementById('empty-state');
+
+  if (!rows.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+
+  tbody.innerHTML = rows.map(r => rowHtml(r)).join('');
+}
+
+function rowHtml(r) {
+  const u = r.reported_user || {};
+  const reporters = r.unique_reporters || 0;
+  const countClass = reporters >= 10 ? 'high' : reporters >= 5 ? 'med' : 'low';
+  const isAutoBlocked = u.is_permanently_blocked;
+  const trClass = isAutoBlocked ? 'auto-blocked' : r.status === 'actioned' ? 'actioned' : '';
+
+  // Block status
+  let blockStatus = '<span class="block-status clean">Clean</span>';
+  if (u.is_permanently_blocked) {
+    blockStatus = '<span class="block-status perm">⛔ Permanently Blocked</span>';
+  } else if (u.admin_blocked_until && new Date(u.admin_blocked_until) > new Date()) {
+    const until = new Date(u.admin_blocked_until).toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
+    blockStatus = `<span class="block-status temp">🔒 Until ${until}</span>`;
+  }
+
+  // Plan badge
+  const plan = u.plan === 'pro'
+    ? '<span class="plan-badge pro">PRO</span>'
+    : '<span class="plan-badge free">FREE</span>';
+
+  // Joined date
+  const joined = u.created_at
+    ? new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit' })
+    : '—';
+
+  // Report date
+  const reportedAt = r.created_at
+    ? new Date(r.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
+    : '—';
+
+  const msgText = r.reported_message_text
+    ? r.reported_message_text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    : '<em style="color:#475569">No message text</em>';
+
+  const noteId = `note_${r.id.replace(/-/g,'')}`;
+
+  return `
+  <tr class="${trClass}" id="row_${r.id.replace(/-/g,'')}">
+    <td>
+      <div class="user-cell">
+        <span class="user-name">${escHtml(u.chitzy_name || '—')} ${plan}</span>
+        <span class="user-phone">${escHtml(r.reported_user_phone || '—')}</span>
+        <span class="user-meta">Joined ${joined} · ${escHtml(u.id ? u.id.slice(0,8) : '—')}…</span>
+      </div>
+    </td>
+    <td><div class="msg-cell">${msgText}</div></td>
+    <td><div class="report-count ${countClass}">${reporters}</div></td>
+    <td>${blockStatus}</td>
+    <td class="time-cell">${reportedAt}</td>
+    <td><span class="status-badge ${r.status}">${r.status}</span></td>
+    <td>
+      <div class="actions-cell">
+        <textarea class="note-input" id="${noteId}" rows="1" placeholder="Admin note (optional)…"></textarea>
+        <div class="action-row">
+          <button class="btn-action nothing" onclick="doAction('do_nothing','${r.id}','${u.id}','${noteId}')">✓ OK</button>
+          <button class="btn-action" onclick="doAction('block_3d','${r.id}','${u.id}','${noteId}')">3 Days</button>
+          <button class="btn-action" onclick="doAction('block_7d','${r.id}','${u.id}','${noteId}')">7 Days</button>
+        </div>
+        <div class="action-row">
+          <button class="btn-action danger" onclick="doAction('block_30d','${r.id}','${u.id}','${noteId}')">30 Days</button>
+          <button class="btn-action perm" onclick="confirmPerm('${r.id}','${u.id}','${noteId}','${escHtml(u.chitzy_name||'')}')">⛔ Permanent</button>
+        </div>
+        ${u.is_permanently_blocked || u.admin_blocked_until ? `<button class="btn-action nothing" style="font-size:10px" onclick="doAction('unblock','${r.id}','${u.id}','${noteId}')">↩ Unblock</button>` : ''}
+      </div>
+    </td>
+  </tr>`;
+}
+
+async function doAction(action, reportId, userId, noteId) {
+  const note = document.getElementById(noteId)?.value || '';
+  const res = await callAdmin({ action, report_id: reportId, user_id: userId, admin_note: note });
+  if (res.error) { showToast('Error: ' + res.error, true); return; }
+
+  showToast(actionLabel(action));
+
+  // Update local state
+  const idx = allReports.findIndex(r => r.id === reportId);
+  if (idx !== -1) {
+    allReports[idx].status = action === 'do_nothing' ? 'reviewed' : 'actioned';
+    if (action === 'block_permanent') allReports[idx].reported_user.is_permanently_blocked = true;
+    if (action === 'unblock') {
+      allReports[idx].reported_user.is_permanently_blocked = false;
+      allReports[idx].reported_user.admin_blocked_until = null;
+    }
+    if (action === 'block_3d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 3*86400000).toISOString();
+    if (action === 'block_7d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 7*86400000).toISOString();
+    if (action === 'block_30d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 30*86400000).toISOString();
+  }
+  renderTable();
+}
+
+function confirmPerm(reportId, userId, noteId, name) {
+  if (confirm(`Permanently block ${name || 'this user'}?\n\nThis will also block their phone number and device. They cannot create a new account with the same number.`)) {
+    doAction('block_permanent', reportId, userId, noteId);
+  }
+}
+
+function actionLabel(a) {
+  return { do_nothing:'Marked as reviewed', block_3d:'Blocked for 3 days', block_7d:'Blocked for 7 days', block_30d:'Blocked for 30 days', block_permanent:'Permanently blocked', unblock:'User unblocked' }[a] || 'Done';
+}
+
+// ── UTILS ─────────────────────────────────────────────────────────────────────
+function escHtml(s) {
+  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+let toastTimer;
+function showToast(msg, isError) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'show' + (isError ? ' error' : '');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+}
+
+// Auto-load on page focus (when admin returns to tab)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && adminPassword) loadReports();
+});
+</script>
+</body>
+</html>
