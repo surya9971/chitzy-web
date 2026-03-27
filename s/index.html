@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Send anonymously — Chitzy</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #070C0B;
+      color: #F1F5F9;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      min-height: 100vh;
+      padding: 32px 20px 80px;
+    }
+    .container { max-width: 480px; margin: 0 auto; }
+    .logo { font-size: 22px; font-weight: 800; color: #0D9488; margin-bottom: 24px; letter-spacing: -0.5px; }
+
+    .recipient-card {
+      background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 16px;
+      padding: 18px 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .avatar {
+      width: 48px; height: 48px; border-radius: 14px;
+      background: linear-gradient(135deg, #0D9488, #5EEAD4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; font-weight: 800; color: #fff; flex-shrink: 0;
+    }
+    .recipient-label { font-size: 12px; color: #475569; margin-bottom: 2px; }
+    .recipient-name { font-size: 18px; font-weight: 700; color: #F1F5F9; }
+    .anon-badge {
+      margin-left: auto;
+      background: rgba(13,148,136,0.12);
+      border: 1px solid rgba(13,148,136,0.25);
+      color: #5EEAD4;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      white-space: nowrap;
+    }
+
+    .section-title { font-size: 15px; font-weight: 700; color: #F1F5F9; margin-bottom: 4px; }
+    .section-sub { font-size: 12px; color: #475569; margin-bottom: 14px; }
+
+    .refresh-badge {
+      display: inline-block;
+      background: rgba(249,115,22,0.1);
+      border: 1px solid rgba(249,115,22,0.25);
+      color: #F97316;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 9px;
+      border-radius: 20px;
+      margin-bottom: 14px;
+    }
+
+    .messages-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
+    .msg-card {
+      background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 14px 16px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      transition: border-color 0.15s, background 0.15s;
+      position: relative;
+      overflow: hidden;
+    }
+    .msg-card::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 3px;
+      background: var(--accent, #0D9488);
+      border-radius: 3px 0 0 3px;
+    }
+    .msg-card:hover { border-color: rgba(94,234,212,0.3); background: #111f1c; }
+    .msg-card.selected { border-color: var(--accent, #0D9488); background: rgba(13,148,136,0.08); }
+    .msg-text { flex: 1; font-size: 14px; color: #CBD5E1; line-height: 1.55; }
+    .msg-select {
+      font-size: 11px; font-weight: 700;
+      color: var(--accent, #5EEAD4);
+      border: 1px solid var(--accent, #5EEAD4);
+      border-radius: 8px;
+      padding: 4px 10px;
+      white-space: nowrap;
+      opacity: 0.7;
+    }
+    .msg-check {
+      width: 26px; height: 26px; border-radius: 8px;
+      background: var(--accent, #0D9488);
+      display: flex; align-items: center; justify-content: center;
+      color: #fff; font-size: 13px; font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .divider { display: flex; align-items: center; gap: 12px; margin: 4px 0 20px; }
+    .divider-line { flex: 1; height: 1px; background: rgba(255,255,255,0.06); }
+    .divider-text { font-size: 11px; color: #475569; text-transform: uppercase; letter-spacing: 1px; }
+
+    textarea {
+      width: 100%;
+      background: #0F1714;
+      border: 1.5px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      color: #F1F5F9;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.6;
+      padding: 14px 16px;
+      resize: none;
+      min-height: 100px;
+      margin-bottom: 8px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: rgba(13,148,136,0.5); }
+    textarea::placeholder { color: #475569; }
+    .char-count { font-size: 11px; color: #475569; text-align: right; margin-bottom: 16px; }
+
+    .send-btn {
+      width: 100%;
+      background: #0D9488;
+      color: #fff;
+      border: none;
+      border-radius: 14px;
+      padding: 16px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      letter-spacing: 0.2px;
+      transition: background 0.15s, opacity 0.15s;
+    }
+    .send-btn:hover { background: #0f7a70; }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .app-banner {
+      margin-top: 20px;
+      background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 14px;
+      padding: 16px 18px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .app-banner-icon { font-size: 28px; }
+    .app-banner-title { font-size: 14px; font-weight: 700; color: #F1F5F9; margin-bottom: 2px; }
+    .app-banner-sub { font-size: 12px; color: #475569; line-height: 1.5; }
+
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 40px 0;
+    }
+    .success-icon { font-size: 56px; margin-bottom: 16px; }
+    .success-title { font-size: 24px; font-weight: 800; color: #F1F5F9; margin-bottom: 8px; }
+    .success-sub { font-size: 14px; color: #475569; line-height: 1.6; margin-bottom: 28px; }
+    .send-another {
+      display: inline-block;
+      background: #0D9488;
+      color: #fff;
+      padding: 12px 28px;
+      border-radius: 50px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+    }
+
+    .error-msg { color: #F87171; font-size: 13px; margin-top: -8px; margin-bottom: 12px; }
+    .loading { text-align: center; color: #475569; padding: 40px 0; font-size: 14px; }
+    .not-found { text-align: center; padding: 60px 0; }
+    .not-found-emoji { font-size: 48px; margin-bottom: 16px; }
+    .not-found-title { font-size: 20px; font-weight: 700; color: #F1F5F9; margin-bottom: 8px; }
+    .not-found-sub { font-size: 14px; color: #475569; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="logo">chitzy</div>
+
+    <div id="loading" class="loading">Loading...</div>
+
+    <div id="not-found" class="not-found" style="display:none">
+      <div class="not-found-emoji">🤔</div>
+      <div class="not-found-title">User not found</div>
+      <div class="not-found-sub">This Chitzy link might be invalid or the account was deleted.</div>
+    </div>
+
+    <div id="main" style="display:none">
+      <!-- Recipient -->
+      <div class="recipient-card">
+        <div class="avatar" id="avatar">?</div>
+        <div>
+          <div class="recipient-label">Sending to</div>
+          <div class="recipient-name" id="recipient-name">@username</div>
+        </div>
+        <div class="anon-badge">🔒 Anonymous</div>
+      </div>
+
+      <!-- Today's Picks -->
+      <div class="section-title">✨ Today's Picks</div>
+      <div class="section-sub">Tap a message to select it, then hit Send</div>
+      <div class="refresh-badge">🔄 Refreshes every 5 days · <a href="https://chitzy.in" style="color:#F97316;text-decoration:none">Download app</a> for daily fresh picks & custom messages</div>
+
+      <div class="messages-grid" id="messages-grid">
+        <div style="color:#475569;font-size:13px;padding:12px 0">Loading today's picks...</div>
+      </div>
+
+      <!-- Divider -->
+      <div class="divider">
+        <div class="divider-line"></div>
+        <div class="divider-text">or write your own</div>
+        <div class="divider-line"></div>
+      </div>
+
+      <!-- Custom input -->
+      <textarea id="custom-input" placeholder="Write something kind, genuine, or from the heart..." maxlength="300" oninput="updateChar()"></textarea>
+      <div class="char-count"><span id="char-count">0</span>/300</div>
+
+      <div id="error-msg" class="error-msg" style="display:none"></div>
+
+      <button class="send-btn" id="send-btn" onclick="handleSend()">Send anonymously →</button>
+
+      <!-- App download banner -->
+      <div class="app-banner">
+        <div class="app-banner-icon">📱</div>
+        <div>
+          <div class="app-banner-title">Want to receive messages too?</div>
+          <div class="app-banner-sub">Download Chitzy to get your own link, see who's messaging you, and send daily with streak rewards.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success screen -->
+    <div class="success-screen" id="success-screen">
+      <div class="success-icon">💬</div>
+      <div class="success-title">Sent! 🎉</div>
+      <div class="success-sub">Your anonymous message has been delivered.<br>They'll never know it was you.</div>
+      <button class="send-another" onclick="resetForm()">Send another →</button>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://hupqcccvzkgetxrausda.supabase.co';
+    const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1cHFjY2N2emtnZXR4cmF1c2RhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwOTcwNTQsImV4cCI6MjA4OTY3MzA1NH0.iwB-odabUyF6TUDwC2Frf-nBzwzp_WT_ILFNZV2QyXs';
+
+    const ACCENT_COLORS = ['#0D9488','#F472B6','#60A5FA','#F97316','#818CF8','#34D399','#FBBF24'];
+
+    let recipientId = null;
+    let selectedMessage = null;
+    const params = new URLSearchParams(window.location.search);
+    const username = params.get('u') || params.get('username') || window.location.pathname.split('/').filter(Boolean).pop();
+
+    async function db(path, opts = {}) {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+        headers: {
+          apikey: SUPABASE_ANON,
+          Authorization: `Bearer ${SUPABASE_ANON}`,
+          'Content-Type': 'application/json',
+          Prefer: 'return=minimal',
+          ...opts.headers,
+        },
+        ...opts,
+      });
+      if (opts.method === 'POST') return res;
+      return res.json();
+    }
+
+    async function init() {
+      if (!username || username === 's') {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('not-found').style.display = 'block';
+        return;
+      }
+
+      // Fetch recipient
+      const users = await db(`users?chitzy_name=ilike.${encodeURIComponent(username)}&select=id,chitzy_name&limit=1`);
+      if (!users || users.length === 0 || users.error) {
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('not-found').style.display = 'block';
+        return;
+      }
+
+      const user = users[0];
+      recipientId = user.id;
+      document.getElementById('recipient-name').textContent = '@' + user.chitzy_name;
+      document.getElementById('avatar').textContent = user.chitzy_name.charAt(0).toUpperCase();
+      document.title = `Send to @${user.chitzy_name} — Chitzy`;
+
+      // Fetch web quick messages
+      const msgs = await db(`quick_messages?platform=eq.web&select=id,text,order_index&order=order_index`);
+      renderMessages(msgs && !msgs.error ? msgs : []);
+
+      document.getElementById('loading').style.display = 'none';
+      document.getElementById('main').style.display = 'block';
+    }
+
+    function renderMessages(msgs) {
+      const grid = document.getElementById('messages-grid');
+      if (!msgs.length) {
+        grid.innerHTML = '<div style="color:#475569;font-size:13px;padding:8px 0">No picks today — write your own below!</div>';
+        return;
+      }
+      grid.innerHTML = msgs.map((m, i) => {
+        const color = ACCENT_COLORS[i % ACCENT_COLORS.length];
+        return `<div class="msg-card" id="msg-${m.id}" style="--accent:${color}" onclick="selectMessage('${m.id}', ${JSON.stringify(m.text).replace(/'/g, "\\'")}, '${color}')">
+          <div class="msg-text">${m.text}</div>
+          <div class="msg-select" id="sel-${m.id}">Send</div>
+        </div>`;
+      }).join('');
+    }
+
+    function selectMessage(id, text, color) {
+      // Deselect all
+      document.querySelectorAll('.msg-card').forEach(el => el.classList.remove('selected'));
+      document.querySelectorAll('[id^="sel-"]').forEach(el => {
+        el.className = 'msg-select';
+        el.textContent = 'Send';
+      });
+      // Select this one
+      const card = document.getElementById('msg-' + id);
+      card.classList.add('selected');
+      const sel = document.getElementById('sel-' + id);
+      sel.className = 'msg-check';
+      sel.textContent = '✓';
+      selectedMessage = text;
+      document.getElementById('custom-input').value = '';
+      updateChar();
+    }
+
+    function updateChar() {
+      const val = document.getElementById('custom-input').value;
+      document.getElementById('char-count').textContent = val.length;
+      if (val.length > 0) {
+        // Deselect quick pick when typing
+        selectedMessage = null;
+        document.querySelectorAll('.msg-card').forEach(el => el.classList.remove('selected'));
+        document.querySelectorAll('[id^="sel-"]').forEach(el => {
+          el.className = 'msg-select';
+          el.textContent = 'Send';
+        });
+      }
+    }
+
+    async function handleSend() {
+      const custom = document.getElementById('custom-input').value.trim();
+      const text = selectedMessage || custom;
+      if (!text) {
+        showError('Pick a message or write your own first.');
+        return;
+      }
+      if (!recipientId) return;
+
+      const btn = document.getElementById('send-btn');
+      btn.disabled = true;
+      btn.textContent = 'Sending...';
+      hideError();
+
+      try {
+        const res = await db('messages', {
+          method: 'POST',
+          headers: { Prefer: 'return=minimal' },
+          body: JSON.stringify({ recipient_id: recipientId, text, sender_id: null }),
+        });
+        if (res.ok || res.status === 201) {
+          document.getElementById('main').style.display = 'none';
+          document.getElementById('success-screen').style.display = 'block';
+        } else {
+          const err = await res.json();
+          showError(err?.message || 'Failed to send. Try again.');
+          btn.disabled = false;
+          btn.textContent = 'Send anonymously →';
+        }
+      } catch {
+        showError('Network error. Please try again.');
+        btn.disabled = false;
+        btn.textContent = 'Send anonymously →';
+      }
+    }
+
+    function resetForm() {
+      selectedMessage = null;
+      document.getElementById('custom-input').value = '';
+      document.getElementById('char-count').textContent = '0';
+      document.getElementById('send-btn').disabled = false;
+      document.getElementById('send-btn').textContent = 'Send anonymously →';
+      document.getElementById('success-screen').style.display = 'none';
+      document.getElementById('main').style.display = 'block';
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('error-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+    function hideError() {
+      document.getElementById('error-msg').style.display = 'none';
+    }
+
+    init();
+  </script>
+</body>
+</html>
