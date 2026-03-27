@@ -189,8 +189,22 @@
   <div class="login-box">
     <h1>chitzy</h1>
     <p>Admin Moderation Dashboard</p>
-    <input type="password" id="admin-pass" placeholder="Admin password" onkeydown="if(event.key==='Enter')login()" />
-    <button class="btn-primary" onclick="login()">Sign In →</button>
+
+    <!-- Step 1: Password -->
+    <div id="step-password">
+      <input type="password" id="admin-pass" placeholder="Admin password" onkeydown="if(event.key==='Enter')loginStep1()" />
+      <button class="btn-primary" onclick="loginStep1()">Continue →</button>
+    </div>
+
+    <!-- Step 2: TOTP -->
+    <div id="step-totp" style="display:none">
+      <p style="color:#5EEAD4;font-size:13px;margin-bottom:16px">🔐 Enter the 6-digit code from Google Authenticator</p>
+      <input type="tel" id="admin-totp" placeholder="000000" maxlength="6" autocomplete="one-time-code"
+        style="letter-spacing:6px;font-size:22px;text-align:center"
+        onkeydown="if(event.key==='Enter')loginStep2()" oninput="if(this.value.length===6)loginStep2()" />
+      <button class="btn-primary" onclick="loginStep2()" style="margin-top:12px">Verify →</button>
+    </div>
+
     <div class="login-error" id="login-error"></div>
   </div>
 </div>
@@ -250,23 +264,40 @@
 <script>
 const EDGE = 'https://hupqcccvzkgetxrausda.supabase.co/functions/v1/admin-action';
 let adminPassword = '';
+let adminTOTP = '';
 let allReports = [];
 let currentFilter = 'all';
 let searchQuery = '';
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
-async function login() {
+async function loginStep1() {
   const pass = document.getElementById('admin-pass').value.trim();
   if (!pass) return;
   document.getElementById('login-error').textContent = '';
-
-  // Test the password by calling get_reports
-  const res = await callAdmin({ action: 'get_reports' }, pass);
+  // Quick check: send password without TOTP — server will say '2FA code required' if password is correct
+  const res = await callAdmin({ action: 'get_reports' }, pass, '');
   if (res.error === 'Unauthorized') {
     document.getElementById('login-error').textContent = 'Wrong password.';
     return;
   }
+  // Password correct — show TOTP step
   adminPassword = pass;
+  document.getElementById('step-password').style.display = 'none';
+  document.getElementById('step-totp').style.display = 'block';
+  setTimeout(() => document.getElementById('admin-totp').focus(), 100);
+}
+
+async function loginStep2() {
+  const code = document.getElementById('admin-totp').value.trim();
+  if (code.length !== 6) return;
+  document.getElementById('login-error').textContent = '';
+  const res = await callAdmin({ action: 'get_reports' }, adminPassword, code);
+  if (res.error) {
+    document.getElementById('login-error').textContent = 'Invalid code. Try again.';
+    document.getElementById('admin-totp').value = '';
+    return;
+  }
+  adminTOTP = code;
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-screen').style.display = 'block';
   processReports(res.reports || []);
@@ -274,19 +305,24 @@ async function login() {
 
 function logout() {
   adminPassword = '';
+  adminTOTP = '';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-screen').style.display = 'none';
   document.getElementById('admin-pass').value = '';
+  document.getElementById('admin-totp').value = '';
+  document.getElementById('step-password').style.display = 'block';
+  document.getElementById('step-totp').style.display = 'none';
 }
 
 // ── API ───────────────────────────────────────────────────────────────────────
-async function callAdmin(body, pass) {
+async function callAdmin(body, pass, totp) {
   try {
     const res = await fetch(EDGE, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-admin-password': pass || adminPassword,
+        'x-admin-password': pass !== undefined ? pass : adminPassword,
+        'x-admin-totp':     totp !== undefined ? totp : adminTOTP,
       },
       body: JSON.stringify(body),
     });
