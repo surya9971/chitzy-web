@@ -214,7 +214,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 let recipientId      = null;
 let recipientName    = '';
-let selectedTemplate = null; // { id }
+let selectedTemplate = null; // { id, type: 'quick' | 'trending' }
 
 const $ = id => document.getElementById(id);
 const states = ['s-loading','s-error','s-send','s-success'];
@@ -251,50 +251,33 @@ async function init() {
 }
 
 async function loadTemplates() {
-  const today = new Date().toISOString().split('T')[0];
-  const [tplRes, catRes] = await Promise.all([
-    db.from('trending_templates')
-      .select('id, text, category_id, likes')
-      .lte('active_date', today)        // today or earlier — always has data
-      .order('likes', { ascending: false })
-      .limit(30),
-    db.from('categories').select('id, name, emoji, color'),
-  ]);
-
-  const catMap = {};
-  (catRes.data || []).forEach(c => catMap[c.id] = c);
+  const { data: qmData } = await db
+    .from('quick_messages')
+    .select('id, text')
+    .eq('platform', 'web')
+    .limit(15);
 
   const list = $('tpl-list');
   list.innerHTML = '';
 
-  if (!tplRes.data?.length) {
+  if (!qmData?.length) {
     list.innerHTML = `<div class="no-templates">No messages available right now.<br>Check back soon!</div>`;
     return;
   }
 
-  // Diversity: one per category first, then fill to 10
-  const seen = new Set(), diverse = [], rest = [];
-  for (const t of tplRes.data) {
-    seen.has(t.category_id) ? rest.push(t) : (seen.add(t.category_id), diverse.push(t));
-  }
-  const templates = [...diverse, ...rest];
-
-  templates.forEach(t => {
-    const cat   = catMap[t.category_id] || {};
-    const color = cat.color || '#0D9488';
-    const card  = document.createElement('div');
+  qmData.forEach(t => {
+    const card = document.createElement('div');
     card.className = 'tpl-card';
     card.innerHTML = `
-      <div class="tpl-accent" style="background:${color}"></div>
+      <div class="tpl-accent" style="background:var(--teal)"></div>
       <div class="tpl-body">
         <div class="tpl-text">${esc(t.text)}</div>
-        ${cat.name ? `<span class="tpl-cat" style="background:${color}20;color:${color}">${cat.emoji || ''} ${cat.name}</span>` : ''}
       </div>
       <div class="tpl-check">✓</div>`;
     card.addEventListener('click', () => {
       document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('sel'));
       card.classList.add('sel');
-      selectedTemplate = { id: t.id };
+      selectedTemplate = { id: t.id, type: 'quick' };
       $('send-btn').disabled = false;
       setTimeout(() => $('send-btn').scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
     });
@@ -311,7 +294,11 @@ $('send-btn').addEventListener('click', async () => {
     const resp = await fetch(`${EDGE_BASE}/send-message-web`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ recipientId, templateId: selectedTemplate.id }),
+      body: JSON.stringify(
+        selectedTemplate.type === 'quick'
+          ? { recipientId, quickMessageId: selectedTemplate.id }
+          : { recipientId, templateId: selectedTemplate.id }
+      ),
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Send failed');
