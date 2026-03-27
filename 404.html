@@ -2,22 +2,103 @@
 <html>
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chitzy</title>
-  <script>
-    // GitHub Pages SPA redirect trick.
-    // Any unknown path like /SilentPanda42 gets served this 404.html.
-    // We extract the username from the path and redirect to /send?to=username.
-    (function() {
-      var path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
-      // Known static paths — let them 404 normally
-      var staticPaths = ['privacy', 'help', 'terms', 'send', 'favicon.ico', 'og-image.png'];
-      if (!path || staticPaths.indexOf(path) !== -1) return;
-      // Treat anything else as a chitzy username
-      window.location.replace('/send?to=' + encodeURIComponent(path));
-    })();
-  </script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #070C0B;
+      color: #94A3B8;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      display: flex; align-items: center; justify-content: center;
+      min-height: 100vh; padding: 24px;
+    }
+    .card {
+      background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 360px;
+      width: 100%;
+      text-align: center;
+    }
+    .logo { font-size: 22px; font-weight: 800; color: #0D9488; margin-bottom: 20px; letter-spacing: -0.5px; }
+    .avatar {
+      width: 64px; height: 64px; border-radius: 18px;
+      background: linear-gradient(135deg, #0D9488, #5EEAD4);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 28px; font-weight: 800; color: #fff;
+      margin: 0 auto 12px;
+    }
+    .name { font-size: 20px; font-weight: 700; color: #F1F5F9; margin-bottom: 4px; }
+    .sub { font-size: 13px; color: #475569; margin-bottom: 24px; }
+    .btn {
+      display: block; width: 100%;
+      background: #0D9488; color: #fff;
+      border: none; border-radius: 14px;
+      padding: 15px; font-size: 15px; font-weight: 700;
+      cursor: pointer; text-decoration: none;
+      margin-bottom: 10px; transition: background 0.15s;
+    }
+    .btn:hover { background: #0f7a70; }
+    .btn-outline {
+      display: block; width: 100%;
+      background: transparent; color: #94A3B8;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 14px;
+      padding: 15px; font-size: 15px; font-weight: 600;
+      cursor: pointer; text-decoration: none; transition: border-color 0.15s;
+    }
+    .btn-outline:hover { border-color: #0D9488; color: #5EEAD4; }
+    .spinner { color: #475569; font-size: 13px; margin-top: 16px; }
+  </style>
 </head>
-<body style="background:#070C0B;color:#94A3B8;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">
-  Redirecting...
+<body>
+  <div class="card">
+    <div class="logo">chitzy</div>
+    <div class="avatar" id="avatar">?</div>
+    <div class="name" id="name">Loading...</div>
+    <div class="sub">wants to receive an anonymous message from you</div>
+    <a class="btn" id="app-btn" href="#" onclick="openApp(event)">📱 Open in Chitzy App</a>
+    <a class="btn-outline" id="web-btn" href="#">Continue on web →</a>
+    <div class="spinner" id="spinner"></div>
+  </div>
+
+  <script>
+    var staticPaths = ['privacy', 'help', 'terms', 'send', 's', 'admin', 'favicon.ico', 'og-image.png', '.well-known'];
+    var path = window.location.pathname.replace(/^\//, '').replace(/\/$/, '');
+
+    // Known static path — do nothing (real 404)
+    if (!path || staticPaths.indexOf(path.split('/')[0]) !== -1) {
+      document.querySelector('.card').innerHTML = '<div class="logo">chitzy</div><div style="font-size:48px;margin:24px 0">🤔</div><div style="font-size:20px;font-weight:700;color:#F1F5F9;margin-bottom:8px">Page not found</div><div style="font-size:14px;color:#475569">This link might be invalid.</div><br><a href="/" style="color:#0D9488;font-size:14px">← Back to chitzy.in</a>';
+    } else {
+      var username = path;
+      var webUrl = '/s/?u=' + encodeURIComponent(username);
+      var appUrl = 'chitzy://' + username;
+
+      document.getElementById('avatar').textContent = username.charAt(0).toUpperCase();
+      document.getElementById('name').textContent = '@' + username;
+      document.getElementById('web-btn').href = webUrl;
+      document.getElementById('app-btn').href = appUrl;
+
+      function openApp(e) {
+        e.preventDefault();
+        window.location = appUrl;
+        // Fallback: if app not installed, go to web after 1.5s
+        setTimeout(function() {
+          window.location = webUrl;
+        }, 1500);
+      }
+
+      // On mobile, auto-try app first, then fall back
+      var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      if (isMobile) {
+        document.getElementById('spinner').textContent = 'Opening Chitzy app...';
+        window.location = appUrl;
+        setTimeout(function() {
+          window.location = webUrl;
+        }, 1500);
+      }
+    }
+  </script>
 </body>
 </html>
