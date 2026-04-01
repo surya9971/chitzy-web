@@ -169,6 +169,40 @@
     .empty-state h3 { font-size: 18px; color: #94A3B8; margin-bottom: 8px; }
     .loading-row td { text-align: center; padding: 40px; color: #475569; }
 
+    /* ── TOTP REFRESH MODAL ── */
+    #totp-modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.75); z-index: 500;
+      align-items: center; justify-content: center;
+    }
+    #totp-modal.show { display: flex; }
+    .totp-modal-box {
+      background: #0F1714; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px; padding: 32px 28px; width: 320px; text-align: center;
+    }
+    .totp-modal-icon { font-size: 32px; margin-bottom: 12px; }
+    .totp-modal-title { font-size: 17px; font-weight: 700; color: #F1F5F9; margin-bottom: 6px; }
+    .totp-modal-sub { font-size: 13px; color: #475569; margin-bottom: 20px; line-height: 1.5; }
+    .totp-modal-input {
+      width: 100%; padding: 14px; background: #162019;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+      color: #F1F5F9; font-size: 22px; text-align: center;
+      letter-spacing: 8px; outline: none; margin-bottom: 16px;
+      font-family: monospace;
+    }
+    .totp-modal-input:focus { border-color: #0D9488; }
+    .totp-modal-actions { display: flex; gap: 8px; }
+    .totp-modal-cancel {
+      flex: 1; padding: 11px; background: transparent;
+      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
+      color: #475569; cursor: pointer; font-size: 14px;
+    }
+    .totp-modal-confirm {
+      flex: 2; padding: 11px; background: #0D9488;
+      border: none; border-radius: 10px; color: #fff;
+      font-size: 14px; font-weight: 600; cursor: pointer;
+    }
+
     /* ── TOAST ── */
     #toast {
       position: fixed; bottom: 24px; right: 24px;
@@ -259,6 +293,21 @@
   </div>
 </div>
 
+<!-- TOTP REFRESH MODAL -->
+<div id="totp-modal">
+  <div class="totp-modal-box">
+    <div class="totp-modal-icon">🔐</div>
+    <div class="totp-modal-title">Session code expired</div>
+    <div class="totp-modal-sub">Your 2FA code expired. Enter a fresh code from Google Authenticator to continue.</div>
+    <input id="totp-refresh-input" class="totp-modal-input" type="tel" maxlength="6"
+      autocomplete="one-time-code" placeholder="000000" />
+    <div class="totp-modal-actions">
+      <button class="totp-modal-cancel" onclick="cancelTOTPRefresh()">Cancel</button>
+      <button class="totp-modal-confirm" onclick="confirmTOTPRefresh()">Continue →</button>
+    </div>
+  </div>
+</div>
+
 <div id="toast"></div>
 
 <script>
@@ -314,8 +363,33 @@ function logout() {
   document.getElementById('step-totp').style.display = 'none';
 }
 
+// ── TOTP REFRESH ──────────────────────────────────────────────────────────────
+let _totpResolve = null;
+function promptTOTP() {
+  return new Promise(resolve => {
+    _totpResolve = resolve;
+    const modal = document.getElementById('totp-modal');
+    const input = document.getElementById('totp-refresh-input');
+    modal.classList.add('show');
+    input.value = '';
+    setTimeout(() => input.focus(), 100);
+    input.oninput = () => { if (input.value.length === 6) confirmTOTPRefresh(); };
+    input.onkeydown = (e) => { if (e.key === 'Enter') confirmTOTPRefresh(); };
+  });
+}
+function confirmTOTPRefresh() {
+  const code = document.getElementById('totp-refresh-input').value.trim();
+  if (code.length !== 6) return;
+  document.getElementById('totp-modal').classList.remove('show');
+  if (_totpResolve) { _totpResolve(code); _totpResolve = null; }
+}
+function cancelTOTPRefresh() {
+  document.getElementById('totp-modal').classList.remove('show');
+  if (_totpResolve) { _totpResolve(null); _totpResolve = null; }
+}
+
 // ── API ───────────────────────────────────────────────────────────────────────
-async function callAdmin(body, pass, totp) {
+async function callAdmin(body, pass, totp, _retried = false) {
   try {
     const res = await fetch(EDGE, {
       method: 'POST',
@@ -326,7 +400,15 @@ async function callAdmin(body, pass, totp) {
       },
       body: JSON.stringify(body),
     });
-    return await res.json();
+    const data = await res.json();
+    // TOTP expired mid-session — prompt for fresh code and retry once
+    if (data.error === 'Invalid 2FA code' && pass === undefined && !_retried) {
+      const newCode = await promptTOTP();
+      if (!newCode) return { error: 'Cancelled' };
+      adminTOTP = newCode;
+      return callAdmin(body, undefined, undefined, true);
+    }
+    return data;
   } catch (e) {
     return { error: e.message };
   }
@@ -337,6 +419,7 @@ async function loadReports() {
     '<tr class="loading-row"><td colspan="7">Loading…</td></tr>';
   const res = await callAdmin({ action: 'get_reports' });
   if (res.error) { showToast('Error: ' + res.error, true); return; }
+  if (res.truncated) showToast('⚠️ Showing latest 200 reports only', true);
   processReports(res.reports || []);
 }
 
@@ -458,7 +541,7 @@ function rowHtml(r) {
         </div>
         <div class="action-row">
           <button class="btn-action danger" onclick="doAction('block_30d','${r.id}','${u.id}','${noteId}')">30 Days</button>
-          <button class="btn-action perm" onclick="confirmPerm('${r.id}','${u.id}','${noteId}','${escHtml(u.chitzy_name||'')}')">⛔ Permanent</button>
+          <button class="btn-action perm" onclick="confirmPerm('${r.id}','${u.id}','${noteId}','${escAttr(u.chitzy_name||'')}')">⛔ Permanent</button>
         </div>
         ${u.is_permanently_blocked || u.admin_blocked_until ? `<button class="btn-action nothing" style="font-size:10px" onclick="doAction('unblock','${r.id}','${u.id}','${noteId}')">↩ Unblock</button>` : ''}
       </div>
@@ -467,6 +550,13 @@ function rowHtml(r) {
 }
 
 async function doAction(action, reportId, userId, noteId) {
+  // Confirm before applying timed blocks
+  if (['block_3d', 'block_7d', 'block_30d'].includes(action)) {
+    const labels = { block_3d: '3 days', block_7d: '7 days', block_30d: '30 days' };
+    const row = document.getElementById('row_' + reportId.replace(/-/g,''));
+    const name = row?.querySelector('.user-name')?.childNodes[0]?.textContent?.trim() || 'this user';
+    if (!confirm(`Block ${name} for ${labels[action]}?`)) return;
+  }
   const note = document.getElementById(noteId)?.value || '';
   const res = await callAdmin({ action, report_id: reportId, user_id: userId, admin_note: note });
   if (res.error) { showToast('Error: ' + res.error, true); return; }
@@ -502,6 +592,10 @@ function actionLabel(a) {
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function escHtml(s) {
   return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+// escAttr also escapes ' — safe for use inside JS string literals in onclick attributes
+function escAttr(s) {
+  return escHtml(s).replace(/'/g,'&#39;');
 }
 
 let toastTimer;
