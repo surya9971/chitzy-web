@@ -89,14 +89,17 @@
         }, 1500);
       }
 
-      // On mobile, auto-try app first, then fall back
       var isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
       if (isMobile) {
+        // Mobile: try opening app first, fall back to web after 1.5s
         document.getElementById('spinner').textContent = 'Opening Chitzy app...';
         window.location = appUrl;
         setTimeout(function() {
           window.location = webUrl;
         }, 1500);
+      } else {
+        // Desktop: no app to open, go straight to web send page
+        window.location = webUrl;
       }
     }
   </script>

@@ -175,6 +175,7 @@
 
   <button class="send-btn" id="send-btn" disabled>Send Anonymously →</button>
   <p class="disclaimer">🔒 The recipient will never know it was you</p>
+  <p id="send-error" style="display:none;color:#F87171;font-size:13px;text-align:center;margin-top:8px;"></p>
 
   <div class="bottom-cta">
     <div class="bottom-cta-title">Want to receive anonymous messages too?</div>
@@ -279,6 +280,7 @@ async function loadTemplates() {
       card.classList.add('sel');
       selectedTemplate = { id: t.id, type: 'quick' };
       $('send-btn').disabled = false;
+      const errEl = $('send-error'); if (errEl) errEl.style.display = 'none';
       setTimeout(() => $('send-btn').scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
     });
     list.appendChild(card);
@@ -303,8 +305,8 @@ $('send-btn').addEventListener('click', async () => {
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Send failed');
     show('s-success');
-  } catch {
-    alert('Something went wrong. Please try again.');
+  } catch (e) {
+    showSendError(e.message || 'Something went wrong. Please try again.');
     $('send-btn').disabled    = false;
     $('send-btn').textContent = 'Send Anonymously →';
   }
@@ -319,11 +321,17 @@ $('another-btn').addEventListener('click', () => {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
-showErr = (title, sub) => {
+const showErr = (title, sub) => {
   $('err-title').textContent = title;
   $('err-sub').textContent   = sub;
   show('s-error');
 };
+
+function showSendError(msg) {
+  const el = $('send-error');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
 
 init();
 </script>
