@@ -410,7 +410,7 @@ async function callAdmin(body, pass, totp, _retried = false) {
     // Store/refresh session token from every response
     if (data.session_token) adminSession = data.session_token;
     // Session expired — prompt for fresh TOTP and retry once
-    if (data.error === 'Invalid 2FA code' && !isLoginCall && !_retried) {
+    if ((data.error === 'Invalid 2FA code' || data.error === '2FA code required') && !isLoginCall && !_retried) {
       adminSession = '';
       const newCode = await promptTOTP();
       if (!newCode) return { error: 'Cancelled' };
