@@ -536,6 +536,7 @@ function rowHtml(r) {
     : `<textarea class="note-input" id="${noteId}" rows="1" placeholder="Admin note (optional)…"></textarea>
        <div class="action-row">
          <button class="btn-action nothing" onclick="doAction('do_nothing','${r.id}','${u.id}','${noteId}')">✓ OK</button>
+         <button class="btn-action" style="font-size:10px" onclick="doAction('block_1m','${r.id}','${u.id}','${noteId}')">1 Min</button>
          <button class="btn-action" onclick="doAction('block_3d','${r.id}','${u.id}','${noteId}')">3 Days</button>
          <button class="btn-action" onclick="doAction('block_7d','${r.id}','${u.id}','${noteId}')">7 Days</button>
        </div>
@@ -565,8 +566,8 @@ function rowHtml(r) {
 
 async function doAction(action, reportId, userId, noteId) {
   // Confirm before applying timed blocks
-  if (['block_3d', 'block_7d', 'block_30d'].includes(action)) {
-    const labels = { block_3d: '3 days', block_7d: '7 days', block_30d: '30 days' };
+  if (['block_1m', 'block_3d', 'block_7d', 'block_30d'].includes(action)) {
+    const labels = { block_1m: '1 minute', block_3d: '3 days', block_7d: '7 days', block_30d: '30 days' };
     const row = document.getElementById('row_' + reportId.replace(/-/g,''));
     const name = row?.querySelector('.user-name')?.childNodes[0]?.textContent?.trim() || 'this user';
     if (!confirm(`Block ${name} for ${labels[action]}?`)) return;
@@ -586,6 +587,7 @@ async function doAction(action, reportId, userId, noteId) {
       allReports[idx].reported_user.is_permanently_blocked = false;
       allReports[idx].reported_user.admin_blocked_until = null;
     }
+    if (action === 'block_1m') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 60000).toISOString();
     if (action === 'block_3d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 3*86400000).toISOString();
     if (action === 'block_7d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 7*86400000).toISOString();
     if (action === 'block_30d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 30*86400000).toISOString();
@@ -600,7 +602,7 @@ function confirmPerm(reportId, userId, noteId, name) {
 }
 
 function actionLabel(a) {
-  return { do_nothing:'Marked as reviewed', block_3d:'Blocked for 3 days', block_7d:'Blocked for 7 days', block_30d:'Blocked for 30 days', block_permanent:'Permanently blocked', unblock:'User unblocked' }[a] || 'Done';
+  return { do_nothing:'Marked as reviewed', block_1m:'Blocked for 1 minute', block_3d:'Blocked for 3 days', block_7d:'Blocked for 7 days', block_30d:'Blocked for 30 days', block_permanent:'Permanently blocked', unblock:'User unblocked' }[a] || 'Done';
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
