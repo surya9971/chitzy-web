@@ -536,8 +536,7 @@ function rowHtml(r) {
     : `<textarea class="note-input" id="${noteId}" rows="1" placeholder="Admin note (optional)…"></textarea>
        <div class="action-row">
          <button class="btn-action nothing" onclick="doAction('do_nothing','${r.id}','${u.id}','${noteId}')">✓ OK</button>
-         <button class="btn-action" style="font-size:10px" onclick="doAction('block_1m','${r.id}','${u.id}','${noteId}')">1 Min</button>
-         <button class="btn-action" onclick="doAction('block_3d','${r.id}','${u.id}','${noteId}')">3 Days</button>
+<button class="btn-action" onclick="doAction('block_3d','${r.id}','${u.id}','${noteId}')">3 Days</button>
          <button class="btn-action" onclick="doAction('block_7d','${r.id}','${u.id}','${noteId}')">7 Days</button>
        </div>
        <div class="action-row">
