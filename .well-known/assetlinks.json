@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.chitzy.app",
+      "sha256_cert_fingerprints": [
+        "8F:CA:20:E1:C0:41:5B:57:A5:13:F4:1A:0D:53:70:05:EE:CF:87:CE:09:48:38:40:62:FA:21:61:1E:A3:DB:D7"
+      ]
+    }
+  }
+]

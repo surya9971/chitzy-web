@@ -1,0 +1,18 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["R3A34QN28G.com.chitzy.app"],
+        "components": [
+          { "/": "/privacy", "exclude": true },
+          { "/": "/terms",   "exclude": true },
+          { "/": "/help",    "exclude": true },
+          { "/": "/send/*",  "exclude": true },
+          { "/": "/s/*",     "exclude": true },
+          { "/": "/admin",   "exclude": true },
+          { "/": "/*" }
+        ]
+      }
+    ]
+  }
+}
