@@ -65,17 +65,32 @@
     .feature-icon { font-size: 22px; margin-top: 1px; }
     .feature-title { font-size: 15px; font-weight: 600; color: #F1F5F9; margin-bottom: 3px; }
     .feature-desc { font-size: 13px; color: #94A3B8; line-height: 1.5; }
+    .cta-row {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      width: 100%;
+      max-width: 300px;
+    }
     .cta {
       background: #0D9488;
       color: #fff;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
-      padding: 16px 40px;
+      padding: 14px 32px;
       border-radius: 14px;
       text-decoration: none;
-      display: inline-block;
-      margin-bottom: 16px;
+      display: block;
+      width: 100%;
+      text-align: center;
       letter-spacing: 0.2px;
+    }
+    .cta.secondary {
+      background: #162019;
+      border: 1px solid rgba(13,148,136,0.3);
+      color: #5EEAD4;
     }
     .cta-sub { color: #475569; font-size: 13px; margin-bottom: 56px; }
     .links {
@@ -124,13 +139,16 @@
       <span class="feature-icon">✦</span>
       <div>
         <div class="feature-title">Chitzy Pro</div>
-        <div class="feature-desc">Unlimited sends, no ads, see sender's school or workplace (free = city only), 7 max freezes — ₹30/month or ₹200/year.</div>
+        <div class="feature-desc">Unlimited sends, no ads, see sender's school or workplace (free = city only), 7 max freezes — iOS: ₹49/month or ₹399/year · Android: ₹30/month or ₹200/year.</div>
       </div>
     </div>
   </div>
 
-  <a class="cta" href="#">Download on App Store</a>
-  <p class="cta-sub">Coming soon on iOS &amp; Android</p>
+  <div class="cta-row">
+    <a class="cta" href="#" id="ios-btn">⬇ Download on App Store</a>
+    <a class="cta secondary" href="https://play.google.com/store/apps/details?id=com.chitzy.app" target="_blank">⬇ Get it on Google Play</a>
+  </div>
+  <p class="cta-sub">Available on iOS &amp; Android</p>
 
   <div class="links">
     <a href="/privacy">Privacy Policy</a>
