@@ -72,8 +72,9 @@
       document.querySelector('.card').innerHTML = '<div class="logo">chitzy</div><div style="font-size:48px;margin:24px 0">🤔</div><div style="font-size:20px;font-weight:700;color:#F1F5F9;margin-bottom:8px">Page not found</div><div style="font-size:14px;color:#475569">This link might be invalid.</div><br><a href="/" style="color:#0D9488;font-size:14px">← Back to chitzy.in</a>';
     } else {
       var username = path;
-      var webUrl = '/send/?to=' + encodeURIComponent(username);
-      var appUrl = 'chitzy://' + username;
+      var dropParam = new URLSearchParams(window.location.search).get('drop');
+      var webUrl = '/send/?to=' + encodeURIComponent(username) + (dropParam ? '&drop=' + encodeURIComponent(dropParam) : '');
+      var appUrl = 'chitzy://' + username + (dropParam ? '?drop=' + encodeURIComponent(dropParam) : '');
 
       document.getElementById('avatar').textContent = username.charAt(0).toUpperCase();
       document.getElementById('name').textContent = '@' + username;

@@ -58,6 +58,12 @@
     .rcpt-name { font-size:19px; font-weight:700; }
     .anon-chip { font-size:11px; color:var(--tealLight); background:var(--tealDim); border:1px solid rgba(13,148,136,0.25); padding:5px 11px; border-radius:20px; font-weight:600; flex-shrink:0; }
 
+    /* Drop context banner (shown when arriving from a shared drop link) */
+    .drop-ctx { display:none; background:rgba(249,115,22,0.08); border:1.5px solid rgba(249,115,22,0.25); border-radius:var(--r); padding:14px 16px; margin-bottom:20px; }
+    .drop-ctx.on { display:block; }
+    .drop-ctx-label { font-size:11px; font-weight:700; color:var(--orange); text-transform:uppercase; letter-spacing:1px; margin-bottom:5px; }
+    .drop-ctx-text { font-size:14px; color:var(--text); line-height:1.5; }
+
     /* Section heading */
     .sec-head { font-size:13px; font-weight:700; color:var(--textSec); text-transform:uppercase; letter-spacing:1.2px; margin-bottom:4px; }
     .sec-sub { font-size:13px; color:var(--textMuted); margin-bottom:14px; }
@@ -153,6 +159,11 @@
     <span class="anon-chip">🔒 Anonymous</span>
   </div>
 
+  <div class="drop-ctx" id="drop-ctx">
+    <div class="drop-ctx-label">↩ Replying to their drop</div>
+    <div class="drop-ctx-text" id="drop-ctx-text"></div>
+  </div>
+
   <p class="sec-head">Pick a message to send</p>
   <p class="sec-sub">Tap one to select, then hit Send.</p>
   <p style="font-size:12px;color:#F97316;background:rgba(249,115,22,0.08);border:1px solid rgba(249,115,22,0.2);border-radius:20px;display:inline-block;padding:4px 12px;margin-bottom:14px;">🔄 Refreshes every 5 days · <a href="https://chitzy.in" style="color:#F97316;">Download app</a> for daily picks &amp; to write your own</p>
@@ -216,6 +227,7 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 let recipientId      = null;
 let recipientName    = '';
 let selectedTemplate = null; // { id, type: 'quick' | 'trending' }
+let dropId           = null; // set when arriving from a shared drop link (?drop=DROP_ID)
 
 const $ = id => document.getElementById(id);
 const states = ['s-loading','s-error','s-send','s-success'];
@@ -228,6 +240,10 @@ function getUsername() {
   if (u) return u;
   const path = location.pathname.replace(/^\//, '').replace(/\/$/, '');
   return (path && path !== 'send') ? path : null;
+}
+
+function getDropId() {
+  return new URLSearchParams(location.search).get('drop') || null;
 }
 
 async function init() {
@@ -246,6 +262,22 @@ async function init() {
   $('rcpt-name').textContent    = '@' + recipientName;
   $('success-name').textContent = '@' + recipientName;
   document.title = `Send @${recipientName} an anonymous message — Chitzy`;
+
+  // If arriving from a shared drop link, show the drop context banner
+  const dlDrop = getDropId();
+  if (dlDrop) {
+    const { data: dropData } = await db
+      .from('drops')
+      .select('id, drop_templates(prompt)')
+      .eq('id', dlDrop)
+      .single();
+    const prompt = dropData?.drop_templates?.prompt;
+    if (prompt) {
+      dropId = dlDrop;
+      $('drop-ctx-text').textContent = prompt;
+      $('drop-ctx').classList.add('on');
+    }
+  }
 
   await loadTemplates();
   show('s-send');
@@ -293,14 +325,15 @@ $('send-btn').addEventListener('click', async () => {
   $('send-btn').textContent = 'Sending...';
 
   try {
+    const payload = selectedTemplate.type === 'quick'
+      ? { recipientId, quickMessageId: selectedTemplate.id }
+      : { recipientId, templateId: selectedTemplate.id };
+    if (dropId) payload.dropId = dropId;
+
     const resp = await fetch(`${EDGE_BASE}/send-message-web`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(
-        selectedTemplate.type === 'quick'
-          ? { recipientId, quickMessageId: selectedTemplate.id }
-          : { recipientId, templateId: selectedTemplate.id }
-      ),
+      body: JSON.stringify(payload),
     });
     const data = await resp.json();
     if (!resp.ok) throw new Error(data.error || 'Send failed');
