@@ -263,20 +263,24 @@ async function init() {
   $('success-name').textContent = '@' + recipientName;
   document.title = `Send @${recipientName} an anonymous message — Chitzy`;
 
-  // If arriving from a shared drop link, show the drop context banner
+  // If arriving from a shared drop link, always pass dropId to edge function.
+  // Set it from URL immediately — edge fn validates ownership with service role.
+  // Also try to show the context banner (may fail if RLS blocks anon reads).
   const dlDrop = getDropId();
   if (dlDrop) {
-    const { data: dropData } = await db
-      .from('drops')
-      .select('id, drop_templates(prompt)')
-      .eq('id', dlDrop)
-      .single();
-    const prompt = dropData?.drop_templates?.prompt;
-    if (prompt) {
-      dropId = dlDrop;
-      $('drop-ctx-text').textContent = prompt;
-      $('drop-ctx').classList.add('on');
-    }
+    dropId = dlDrop; // always set — edge fn will validate
+    try {
+      const { data: dropData } = await db
+        .from('drops')
+        .select('id, drop_templates(prompt)')
+        .eq('id', dlDrop)
+        .single();
+      const prompt = dropData?.drop_templates?.prompt;
+      if (prompt) {
+        $('drop-ctx-text').textContent = prompt;
+        $('drop-ctx').classList.add('on');
+      }
+    } catch (_) {}
   }
 
   await loadTemplates();
