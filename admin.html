@@ -304,6 +304,24 @@ let currentFilter = 'pending';
 let searchQuery   = '';
 let pendingAction = null; // { body } — replayed after TOTP refresh
 
+// ── SESSION TIMEOUT (15 min) ──────────────────────────────────────────────────
+const SESSION_TIMEOUT = 15 * 60 * 1000;
+let sessionTimer = null;
+
+function resetSessionTimer() {
+  clearTimeout(sessionTimer);
+  if (!adminPassword) return;
+  sessionTimer = setTimeout(() => {
+    logout();
+    document.getElementById('login-error').textContent = 'Session expired after 15 minutes. Please sign in again.';
+  }, SESSION_TIMEOUT);
+}
+
+// Reset timer on any user interaction
+['click', 'keydown', 'mousemove'].forEach(evt =>
+  document.addEventListener(evt, () => { if (adminPassword) resetSessionTimer(); }, { passive: true })
+);
+
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 async function login() {
   const pass = document.getElementById('admin-pass').value.trim();
@@ -323,10 +341,12 @@ async function login() {
   adminTOTP = totp;
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-screen').style.display = 'block';
+  resetSessionTimer();
   processReports(res.reports || []);
 }
 
 function logout() {
+  clearTimeout(sessionTimer);
   adminPassword = '';
   adminTOTP = '';
   document.getElementById('login-screen').style.display = 'flex';
