@@ -85,47 +85,89 @@
     }
     .search-input:focus { border-color: #0D9488; }
 
-    /* ── TABLE ── */
-    .table-wrap { padding: 0 24px 40px; overflow-x: auto; }
-    table { width: 100%; border-collapse: collapse; min-width: 900px; }
-    thead th {
-      text-align: left; padding: 10px 12px;
-      color: #475569; font-size: 11px; font-weight: 600;
-      text-transform: uppercase; letter-spacing: 0.5px;
-      border-bottom: 1px solid rgba(255,255,255,0.06);
-      white-space: nowrap;
+    /* ── USER ROWS ── */
+    .table-wrap { padding: 0 24px 40px; }
+    .user-group {
+      background: #0F1714;
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      margin-bottom: 10px;
+      overflow: hidden;
     }
-    tbody tr {
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+    .user-group.has-pending { border-color: rgba(249,115,22,0.25); }
+    .user-group.is-blocked  { border-color: rgba(248,113,113,0.2); }
+
+    .user-row {
+      display: grid;
+      grid-template-columns: 1fr 80px 180px 160px 200px;
+      align-items: center;
+      padding: 14px 16px;
+      cursor: pointer;
+      gap: 12px;
       transition: background 0.15s;
     }
-    tbody tr:hover { background: rgba(255,255,255,0.02); }
-    tbody tr.auto-blocked { background: rgba(248,113,113,0.05); }
-    tbody tr.actioned { opacity: 0.4; }
-    td { padding: 12px; vertical-align: middle; }
+    .user-row:hover { background: rgba(255,255,255,0.02); }
 
-    .user-cell { display: flex; flex-direction: column; gap: 2px; }
-    .user-name { font-weight: 600; color: #F1F5F9; font-size: 13px; }
+    .user-info { display: flex; flex-direction: column; gap: 3px; }
+    .user-name  { font-weight: 700; font-size: 14px; color: #F1F5F9; display: flex; align-items: center; gap: 6px; }
     .user-phone { color: #475569; font-size: 11px; font-family: monospace; }
-    .user-meta { color: #475569; font-size: 11px; }
-    .plan-badge {
-      display: inline-block; padding: 1px 6px; border-radius: 4px;
-      font-size: 10px; font-weight: 700;
-    }
-    .plan-badge.pro { background: rgba(249,115,22,0.2); color: #FB923C; }
-    .plan-badge.free { background: rgba(255,255,255,0.06); color: #475569; }
+    .user-meta  { color: #475569; font-size: 11px; }
 
-    .msg-cell {
-      max-width: 260px; color: #94A3B8; font-size: 13px;
-      line-height: 1.5; word-break: break-word;
+    .report-badge {
+      display: flex; flex-direction: column; align-items: center;
+      font-weight: 800; font-size: 22px; line-height: 1;
+    }
+    .report-badge span { font-size: 10px; font-weight: 400; color: #475569; margin-top: 2px; }
+    .report-badge.high { color: #F87171; }
+    .report-badge.med  { color: #FB923C; }
+    .report-badge.low  { color: #5EEAD4; }
+
+    .latest-msg {
+      color: #94A3B8; font-size: 12px; line-height: 1.5;
+      display: -webkit-box; -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical; overflow: hidden;
     }
 
-    .report-count {
-      font-size: 22px; font-weight: 800; text-align: center;
+    .block-status { font-size: 12px; }
+    .block-status.perm  { color: #F87171; font-weight: 600; }
+    .block-status.temp  { color: #FB923C; }
+    .block-status.clean { color: #475569; }
+
+    .user-actions { display: flex; flex-direction: column; gap: 5px; }
+    .action-row   { display: flex; gap: 4px; }
+    .btn-action {
+      flex: 1; padding: 5px 8px; border-radius: 6px;
+      border: 1px solid rgba(255,255,255,0.1); background: transparent;
+      color: #94A3B8; font-size: 11px; cursor: pointer; text-align: center;
+      white-space: nowrap;
     }
-    .report-count.high { color: #F87171; }
-    .report-count.med  { color: #FB923C; }
-    .report-count.low  { color: #5EEAD4; }
+    .btn-action:hover        { border-color: #0D9488; color: #0D9488; background: rgba(13,148,136,0.08); }
+    .btn-action.danger:hover { border-color: #F87171; color: #F87171; background: rgba(248,113,113,0.08); }
+    .btn-action.perm:hover   { border-color: #F87171; color: #fff; background: #F87171; }
+    .btn-action.nothing:hover{ border-color: #34D399; color: #34D399; background: rgba(52,211,153,0.08); }
+
+    .expand-icon { font-size: 10px; color: #475569; transition: transform 0.2s; display: inline-block; }
+    .expanded .expand-icon { transform: rotate(90deg); }
+
+    /* ── REPORT DETAIL PANEL ── */
+    .reports-panel {
+      display: none;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      background: #070C0B;
+    }
+    .reports-panel.open { display: block; }
+
+    .report-item {
+      display: grid;
+      grid-template-columns: 1fr 120px 120px;
+      gap: 12px;
+      padding: 12px 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      align-items: start;
+    }
+    .report-item:last-child { border-bottom: none; }
+    .report-msg { color: #94A3B8; font-size: 13px; line-height: 1.5; word-break: break-word; }
+    .report-date { color: #475569; font-size: 11px; white-space: nowrap; }
 
     .status-badge {
       display: inline-block; padding: 3px 8px; border-radius: 6px;
@@ -135,23 +177,12 @@
     .status-badge.reviewed { background: rgba(255,255,255,0.06); color: #475569; }
     .status-badge.actioned { background: rgba(52,211,153,0.15); color: #34D399; }
 
-    .block-status { font-size: 12px; }
-    .block-status.perm    { color: #F87171; font-weight: 600; }
-    .block-status.temp    { color: #FB923C; }
-    .block-status.clean   { color: #475569; }
-
-    .actions-cell { display: flex; flex-direction: column; gap: 6px; min-width: 180px; }
-    .action-row   { display: flex; gap: 4px; }
-    .btn-action {
-      flex: 1; padding: 6px 8px; border-radius: 6px;
-      border: 1px solid rgba(255,255,255,0.1); background: transparent;
-      color: #94A3B8; font-size: 11px; cursor: pointer; text-align: center;
-      white-space: nowrap;
+    .plan-badge {
+      display: inline-block; padding: 1px 6px; border-radius: 4px;
+      font-size: 10px; font-weight: 700;
     }
-    .btn-action:hover { border-color: #0D9488; color: #0D9488; background: rgba(13,148,136,0.08); }
-    .btn-action.danger:hover { border-color: #F87171; color: #F87171; background: rgba(248,113,113,0.08); }
-    .btn-action.perm:hover { border-color: #F87171; color: #fff; background: #F87171; }
-    .btn-action.nothing:hover { border-color: #34D399; color: #34D399; background: rgba(52,211,153,0.08); }
+    .plan-badge.pro  { background: rgba(249,115,22,0.2); color: #FB923C; }
+    .plan-badge.free { background: rgba(255,255,255,0.06); color: #475569; }
 
     .note-input {
       width: 100%; padding: 5px 8px; background: #162019;
@@ -160,48 +191,10 @@
     }
     .note-input:focus { border-color: rgba(13,148,136,0.4); }
 
-    .time-cell { color: #475569; font-size: 11px; white-space: nowrap; }
-
     /* ── EMPTY / LOADING ── */
-    .empty-state {
-      text-align: center; padding: 60px 20px; color: #475569;
-    }
+    .empty-state { text-align: center; padding: 60px 20px; color: #475569; }
     .empty-state h3 { font-size: 18px; color: #94A3B8; margin-bottom: 8px; }
-    .loading-row td { text-align: center; padding: 40px; color: #475569; }
-
-    /* ── TOTP REFRESH MODAL ── */
-    #totp-modal {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.75); z-index: 500;
-      align-items: center; justify-content: center;
-    }
-    #totp-modal.show { display: flex; }
-    .totp-modal-box {
-      background: #0F1714; border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 20px; padding: 32px 28px; width: 320px; text-align: center;
-    }
-    .totp-modal-icon { font-size: 32px; margin-bottom: 12px; }
-    .totp-modal-title { font-size: 17px; font-weight: 700; color: #F1F5F9; margin-bottom: 6px; }
-    .totp-modal-sub { font-size: 13px; color: #475569; margin-bottom: 20px; line-height: 1.5; }
-    .totp-modal-input {
-      width: 100%; padding: 14px; background: #162019;
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-      color: #F1F5F9; font-size: 22px; text-align: center;
-      letter-spacing: 8px; outline: none; margin-bottom: 16px;
-      font-family: monospace;
-    }
-    .totp-modal-input:focus { border-color: #0D9488; }
-    .totp-modal-actions { display: flex; gap: 8px; }
-    .totp-modal-cancel {
-      flex: 1; padding: 11px; background: transparent;
-      border: 1px solid rgba(255,255,255,0.1); border-radius: 10px;
-      color: #475569; cursor: pointer; font-size: 14px;
-    }
-    .totp-modal-confirm {
-      flex: 2; padding: 11px; background: #0D9488;
-      border: none; border-radius: 10px; color: #fff;
-      font-size: 14px; font-weight: 600; cursor: pointer;
-    }
+    #loading-msg { text-align: center; padding: 40px; color: #475569; }
 
     /* ── TOAST ── */
     #toast {
@@ -214,6 +207,28 @@
     }
     #toast.show { opacity: 1; transform: translateY(0); }
     #toast.error { border-color: rgba(248,113,113,0.3); }
+
+    /* ── TOTP MODAL ── */
+    #totp-modal {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.7); z-index: 500;
+      align-items: center; justify-content: center;
+    }
+    #totp-modal.open { display: flex; }
+    .totp-box {
+      background: #0F1714; border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 16px; padding: 28px; width: 320px;
+    }
+    .totp-box h3 { font-size: 16px; margin-bottom: 8px; }
+    .totp-box p  { color: #475569; font-size: 13px; margin-bottom: 16px; }
+    .totp-box input {
+      width: 100%; padding: 10px 14px; background: #162019;
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 8px;
+      color: #F1F5F9; font-size: 18px; letter-spacing: 6px;
+      text-align: center; outline: none; margin-bottom: 12px;
+    }
+    .totp-box input:focus { border-color: #0D9488; }
+    .totp-error { color: #F87171; font-size: 12px; margin-bottom: 8px; }
   </style>
 </head>
 <body>
@@ -223,22 +238,9 @@
   <div class="login-box">
     <h1>chitzy</h1>
     <p>Admin Moderation Dashboard</p>
-
-    <!-- Step 1: Password -->
-    <div id="step-password">
-      <input type="password" id="admin-pass" placeholder="Admin password" onkeydown="if(event.key==='Enter')loginStep1()" />
-      <button class="btn-primary" onclick="loginStep1()">Continue →</button>
-    </div>
-
-    <!-- Step 2: TOTP -->
-    <div id="step-totp" style="display:none">
-      <p style="color:#5EEAD4;font-size:13px;margin-bottom:16px">🔐 Enter the 6-digit code from Google Authenticator</p>
-      <input type="tel" id="admin-totp" placeholder="000000" maxlength="6" autocomplete="one-time-code"
-        style="letter-spacing:6px;font-size:22px;text-align:center"
-        onkeydown="if(event.key==='Enter')loginStep2()" oninput="if(this.value.length===6)loginStep2()" />
-      <button class="btn-primary" onclick="loginStep2()" style="margin-top:12px">Verify →</button>
-    </div>
-
+    <input type="password" id="admin-pass" placeholder="Admin password" onkeydown="if(event.key==='Enter')document.getElementById('admin-totp').focus()" />
+    <input type="text" id="admin-totp" placeholder="2FA code (Google Authenticator)" inputmode="numeric" maxlength="6" onkeydown="if(event.key==='Enter')login()" style="letter-spacing:4px" />
+    <button class="btn-primary" onclick="login()">Sign In →</button>
     <div class="login-error" id="login-error"></div>
   </div>
 </div>
@@ -249,9 +251,9 @@
     <div class="topbar-left">
       <h1>chitzy admin</h1>
       <div class="topbar-stats">
-        <span class="stat-pill red"  id="stat-pending">— pending</span>
-        <span class="stat-pill orange" id="stat-autoblock">— auto-blocked</span>
-        <span class="stat-pill" id="stat-total">— total</span>
+        <span class="stat-pill red"    id="stat-pending">— pending</span>
+        <span class="stat-pill orange" id="stat-users">— users</span>
+        <span class="stat-pill"        id="stat-total">— reports</span>
       </div>
     </div>
     <div style="display:flex;gap:8px;align-items:center">
@@ -261,31 +263,16 @@
   </div>
 
   <div class="filters">
-    <button class="filter-btn active" onclick="setFilter('all',this)">All</button>
-    <button class="filter-btn" onclick="setFilter('pending',this)">Pending</button>
+    <button class="filter-btn active" onclick="setFilter('pending',this)">Has Pending</button>
+    <button class="filter-btn" onclick="setFilter('all',this)">All Users</button>
+    <button class="filter-btn" onclick="setFilter('blocked',this)">Blocked</button>
     <button class="filter-btn" onclick="setFilter('actioned',this)">Actioned</button>
-    <button class="filter-btn" onclick="setFilter('reviewed',this)">Reviewed</button>
-    <button class="filter-btn" onclick="setFilter('blocked',this)">Blocked Users</button>
     <input class="search-input" type="text" placeholder="Search name / phone / message…" oninput="applySearch(this.value)" />
   </div>
 
   <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Reported User</th>
-          <th>Message</th>
-          <th style="text-align:center">Unique<br>Reporters</th>
-          <th>Block Status</th>
-          <th>Report Date</th>
-          <th>Status</th>
-          <th style="min-width:190px">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="reports-tbody">
-        <tr class="loading-row"><td colspan="7">Loading reports…</td></tr>
-      </tbody>
-    </table>
+    <div id="loading-msg">Loading reports…</div>
+    <div id="groups-container"></div>
     <div id="empty-state" class="empty-state" style="display:none">
       <h3>No reports found</h3>
       <p>Nothing matches your current filter.</p>
@@ -295,16 +282,13 @@
 
 <!-- TOTP REFRESH MODAL -->
 <div id="totp-modal">
-  <div class="totp-modal-box">
-    <div class="totp-modal-icon">🔐</div>
-    <div class="totp-modal-title">Session code expired</div>
-    <div class="totp-modal-sub">Your 2FA code expired. Enter a fresh code from Google Authenticator to continue.</div>
-    <input id="totp-refresh-input" class="totp-modal-input" type="tel" maxlength="6"
-      autocomplete="one-time-code" placeholder="000000" />
-    <div class="totp-modal-actions">
-      <button class="totp-modal-cancel" onclick="cancelTOTPRefresh()">Cancel</button>
-      <button class="totp-modal-confirm" onclick="confirmTOTPRefresh()">Continue →</button>
-    </div>
+  <div class="totp-box">
+    <h3>2FA Code Expired</h3>
+    <p>Enter a fresh code from Google Authenticator to continue.</p>
+    <input type="text" id="totp-refresh-input" inputmode="numeric" maxlength="6" placeholder="000000"
+      onkeydown="if(event.key==='Enter')submitTotpRefresh()" />
+    <div class="totp-error" id="totp-refresh-error"></div>
+    <button class="btn-primary" onclick="submitTotpRefresh()">Continue</button>
   </div>
 </div>
 
@@ -314,41 +298,29 @@
 const EDGE = 'https://hupqcccvzkgetxrausda.supabase.co/functions/v1/admin-action';
 let adminPassword = '';
 let adminTOTP = '';
-let adminSession = '';
-let allReports = [];
-let currentFilter = 'all';
-let searchQuery = '';
+let allReports   = [];   // flat list from server
+let userGroups   = [];   // grouped by reported_user_id
+let currentFilter = 'pending';
+let searchQuery   = '';
+let pendingAction = null; // { body } — replayed after TOTP refresh
 
 // ── AUTH ─────────────────────────────────────────────────────────────────────
-async function loginStep1() {
+async function login() {
   const pass = document.getElementById('admin-pass').value.trim();
+  const totp = document.getElementById('admin-totp').value.trim();
   if (!pass) return;
   document.getElementById('login-error').textContent = '';
-  // Quick check: send password without TOTP — server will say '2FA code required' if password is correct
-  const res = await callAdmin({ action: 'get_reports' }, pass, '');
-  if (res.error === 'Unauthorized') {
-    document.getElementById('login-error').textContent = 'Wrong password.';
-    return;
-  }
-  // Password correct — show TOTP step
-  adminPassword = pass;
-  document.getElementById('step-password').style.display = 'none';
-  document.getElementById('step-totp').style.display = 'block';
-  setTimeout(() => document.getElementById('admin-totp').focus(), 100);
-}
 
-async function loginStep2() {
-  const code = document.getElementById('admin-totp').value.trim();
-  if (code.length !== 6) return;
-  document.getElementById('login-error').textContent = '';
-  const res = await callAdmin({ action: 'get_reports' }, adminPassword, code);
+  const res = await callAdmin({ action: 'get_reports' }, pass, totp);
   if (res.error) {
-    document.getElementById('login-error').textContent = 'Invalid code. Try again.';
-    document.getElementById('admin-totp').value = '';
+    const msg = res.error === 'Unauthorized'         ? 'Wrong password.' :
+                res.error === 'Invalid 2FA code'     ? 'Wrong 2FA code.' :
+                res.error === '2FA code required'    ? '2FA code required.' : res.error;
+    document.getElementById('login-error').textContent = msg;
     return;
   }
-  adminTOTP = code;
-  if (res.session_token) adminSession = res.session_token;
+  adminPassword = pass;
+  adminTOTP = totp;
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-screen').style.display = 'block';
   processReports(res.reports || []);
@@ -357,65 +329,28 @@ async function loginStep2() {
 function logout() {
   adminPassword = '';
   adminTOTP = '';
-  adminSession = '';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-screen').style.display = 'none';
   document.getElementById('admin-pass').value = '';
   document.getElementById('admin-totp').value = '';
-  document.getElementById('step-password').style.display = 'block';
-  document.getElementById('step-totp').style.display = 'none';
-}
-
-// ── TOTP REFRESH ──────────────────────────────────────────────────────────────
-let _totpResolve = null;
-function promptTOTP() {
-  return new Promise(resolve => {
-    _totpResolve = resolve;
-    const modal = document.getElementById('totp-modal');
-    const input = document.getElementById('totp-refresh-input');
-    modal.classList.add('show');
-    input.value = '';
-    setTimeout(() => input.focus(), 100);
-    input.oninput = () => { if (input.value.length === 6) confirmTOTPRefresh(); };
-    input.onkeydown = (e) => { if (e.key === 'Enter') confirmTOTPRefresh(); };
-  });
-}
-function confirmTOTPRefresh() {
-  const code = document.getElementById('totp-refresh-input').value.trim();
-  if (code.length !== 6) return;
-  document.getElementById('totp-modal').classList.remove('show');
-  if (_totpResolve) { _totpResolve(code); _totpResolve = null; }
-}
-function cancelTOTPRefresh() {
-  document.getElementById('totp-modal').classList.remove('show');
-  if (_totpResolve) { _totpResolve(null); _totpResolve = null; }
 }
 
 // ── API ───────────────────────────────────────────────────────────────────────
-async function callAdmin(body, pass, totp, _retried = false) {
+async function callAdmin(body, pass, totp) {
   try {
-    const isLoginCall = pass !== undefined;
     const headers = {
       'Content-Type': 'application/json',
-      'x-admin-password': isLoginCall ? pass : adminPassword,
+      'x-admin-password': pass || adminPassword,
     };
-    if (!isLoginCall && adminSession) {
-      // Post-login: use session token (valid 10 min, sliding window)
-      headers['x-admin-session'] = adminSession;
-    } else if (totp !== undefined) {
-      headers['x-admin-totp'] = totp;
-    }
+    const totpCode = totp || adminTOTP;
+    if (totpCode) headers['x-admin-totp'] = totpCode;
     const res = await fetch(EDGE, { method: 'POST', headers, body: JSON.stringify(body) });
     const data = await res.json();
-    // Store/refresh session token from every response
-    if (data.session_token) adminSession = data.session_token;
-    // Session expired — prompt for fresh TOTP and retry once
-    if ((data.error === 'Invalid 2FA code' || data.error === '2FA code required') && !isLoginCall && !_retried) {
-      adminSession = '';
-      const newCode = await promptTOTP();
-      if (!newCode) return { error: 'Cancelled' };
-      adminTOTP = newCode;
-      return callAdmin(body, undefined, newCode, true);
+    // TOTP expired mid-session — prompt for fresh code
+    if (data.error === 'Invalid 2FA code' && adminPassword && !pass) {
+      pendingAction = body;
+      openTotpModal();
+      return { __totp_pending: true };
     }
     return data;
   } catch (e) {
@@ -423,12 +358,40 @@ async function callAdmin(body, pass, totp, _retried = false) {
   }
 }
 
+// ── TOTP REFRESH MODAL ────────────────────────────────────────────────────────
+function openTotpModal() {
+  document.getElementById('totp-modal').classList.add('open');
+  document.getElementById('totp-refresh-input').value = '';
+  document.getElementById('totp-refresh-error').textContent = '';
+  setTimeout(() => document.getElementById('totp-refresh-input').focus(), 100);
+}
+
+async function submitTotpRefresh() {
+  const code = document.getElementById('totp-refresh-input').value.trim();
+  if (!code) return;
+  adminTOTP = code;
+  document.getElementById('totp-modal').classList.remove('open');
+  if (pendingAction) {
+    const body = pendingAction;
+    pendingAction = null;
+    const res = await callAdmin(body);
+    if (res.error) { showToast('Error: ' + res.error, true); return; }
+    if (body.action === 'get_reports') {
+      processReports(res.reports || []);
+    } else {
+      handleActionResponse(res, body);
+    }
+  }
+}
+
+// ── LOAD ──────────────────────────────────────────────────────────────────────
 async function loadReports() {
-  document.getElementById('reports-tbody').innerHTML =
-    '<tr class="loading-row"><td colspan="7">Loading…</td></tr>';
+  document.getElementById('loading-msg').style.display = 'block';
+  document.getElementById('groups-container').innerHTML = '';
+  document.getElementById('empty-state').style.display = 'none';
   const res = await callAdmin({ action: 'get_reports' });
+  if (res.__totp_pending) return;
   if (res.error) { showToast('Error: ' + res.error, true); return; }
-  if (res.truncated) showToast('⚠️ Showing latest 200 reports only', true);
   processReports(res.reports || []);
 }
 
@@ -436,73 +399,99 @@ async function loadReports() {
 function processReports(reports) {
   allReports = reports;
 
-  // Stats
-  const pending   = reports.filter(r => r.status === 'pending').length;
-  const autoBlocked = reports.filter(r => r.reported_user?.is_permanently_blocked).length;
-  document.getElementById('stat-pending').textContent   = `${pending} pending`;
-  document.getElementById('stat-autoblock').textContent = `${autoBlocked} auto-blocked`;
-  document.getElementById('stat-total').textContent     = `${reports.length} total`;
+  // Group by reported_user_id
+  const map = {};
+  for (const r of reports) {
+    const uid = r.reported_user_id || r.reported_user?.id || 'unknown';
+    if (!map[uid]) {
+      map[uid] = {
+        uid,
+        user: r.reported_user || {},
+        phone: r.reported_user_phone || '—',
+        reports: [],
+        pendingCount: 0,
+        allActioned: true,
+      };
+    }
+    map[uid].reports.push(r);
+    if (r.status === 'pending') map[uid].pendingCount++;
+    if (r.status !== 'actioned') map[uid].allActioned = false;
+  }
 
-  renderTable();
+  // Sort: most pending first, then most reports
+  userGroups = Object.values(map).sort((a, b) =>
+    b.pendingCount - a.pendingCount || b.reports.length - a.reports.length
+  );
+
+  // Stats
+  const totalPending = userGroups.filter(g => g.pendingCount > 0).length;
+  document.getElementById('stat-pending').textContent = `${totalPending} pending users`;
+  document.getElementById('stat-users').textContent   = `${userGroups.length} users`;
+  document.getElementById('stat-total').textContent   = `${reports.length} reports`;
+
+  document.getElementById('loading-msg').style.display = 'none';
+  renderGroups();
 }
 
 function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  renderTable();
+  renderGroups();
 }
 
 function applySearch(q) {
   searchQuery = q.toLowerCase();
-  renderTable();
+  renderGroups();
 }
 
-function renderTable() {
-  let rows = allReports;
+function renderGroups() {
+  let groups = userGroups;
 
   // Filter
-  if (currentFilter === 'pending')   rows = rows.filter(r => r.status === 'pending');
-  if (currentFilter === 'actioned')  rows = rows.filter(r => r.status === 'actioned');
-  if (currentFilter === 'reviewed')  rows = rows.filter(r => r.status === 'reviewed');
-  if (currentFilter === 'blocked')   rows = rows.filter(r => r.reported_user?.is_permanently_blocked || r.reported_user?.admin_blocked_until);
+  if (currentFilter === 'pending')  groups = groups.filter(g => g.pendingCount > 0);
+  if (currentFilter === 'actioned') groups = groups.filter(g => g.allActioned);
+  if (currentFilter === 'blocked')  groups = groups.filter(g =>
+    g.user.is_permanently_blocked || (g.user.admin_blocked_until && new Date(g.user.admin_blocked_until) > new Date())
+  );
+  // 'all' — show everything
 
   // Search
   if (searchQuery) {
-    rows = rows.filter(r =>
-      (r.reported_user?.chitzy_name || '').toLowerCase().includes(searchQuery) ||
-      (r.reported_user_phone || '').includes(searchQuery) ||
-      (r.reported_message_text || '').toLowerCase().includes(searchQuery)
+    groups = groups.filter(g =>
+      (g.user.chitzy_name || '').toLowerCase().includes(searchQuery) ||
+      (g.phone || '').includes(searchQuery) ||
+      g.reports.some(r => (r.reported_message_text || '').toLowerCase().includes(searchQuery))
     );
   }
 
-  const tbody = document.getElementById('reports-tbody');
-  const empty = document.getElementById('empty-state');
+  const container = document.getElementById('groups-container');
+  const empty     = document.getElementById('empty-state');
 
-  if (!rows.length) {
-    tbody.innerHTML = '';
+  if (!groups.length) {
+    container.innerHTML = '';
     empty.style.display = 'block';
     return;
   }
   empty.style.display = 'none';
-
-  tbody.innerHTML = rows.map(r => rowHtml(r)).join('');
+  container.innerHTML = groups.map(g => groupHtml(g)).join('');
 }
 
-function rowHtml(r) {
-  const u = r.reported_user || {};
-  const reporters = r.unique_reporters || 0;
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function groupHtml(g) {
+  const u = g.user;
+  const reporters = g.reports[0]?.unique_reporters || 0;
   const countClass = reporters >= 10 ? 'high' : reporters >= 5 ? 'med' : 'low';
-  const isAutoBlocked = u.is_permanently_blocked;
-  const trClass = isAutoBlocked ? 'auto-blocked' : r.status === 'actioned' ? 'actioned' : '';
+  const isBlocked  = u.is_permanently_blocked || (u.admin_blocked_until && new Date(u.admin_blocked_until) > new Date());
+  const groupClass = g.pendingCount > 0 ? 'has-pending' : isBlocked ? 'is-blocked' : '';
 
   // Block status
-  let blockStatus = '<span class="block-status clean">Clean</span>';
+  let blockHtml = '<span class="block-status clean">Clean</span>';
   if (u.is_permanently_blocked) {
-    blockStatus = '<span class="block-status perm">⛔ Permanently Blocked</span>';
+    blockHtml = '<span class="block-status perm">⛔ Permanently Blocked</span>';
   } else if (u.admin_blocked_until && new Date(u.admin_blocked_until) > new Date()) {
     const until = new Date(u.admin_blocked_until).toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' });
-    blockStatus = `<span class="block-status temp">🔒 Until ${until}</span>`;
+    blockHtml = `<span class="block-status temp">🔒 Until ${until}</span>`;
   }
 
   // Plan badge
@@ -510,107 +499,142 @@ function rowHtml(r) {
     ? '<span class="plan-badge pro">PRO</span>'
     : '<span class="plan-badge free">FREE</span>';
 
-  // Joined date
+  // Joined
   const joined = u.created_at
     ? new Date(u.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit' })
     : '—';
 
-  // Report date
-  const reportedAt = r.created_at
-    ? new Date(r.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', hour:'2-digit', minute:'2-digit' })
-    : '—';
-
-  const msgText = r.reported_message_text
-    ? r.reported_message_text.replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  // Latest message preview
+  const latestMsg = g.reports[0]?.reported_message_text || '';
+  const msgPreview = latestMsg
+    ? escHtml(latestMsg.slice(0, 120)) + (latestMsg.length > 120 ? '…' : '')
     : '<em style="color:#475569">No message text</em>';
 
-  const noteId = `note_${r.id.replace(/-/g,'')}`;
-  const isDone = r.status === 'actioned' || r.status === 'reviewed';
-  const isBlocked = u.is_permanently_blocked || (u.admin_blocked_until && new Date(u.admin_blocked_until) > new Date());
+  // Note textarea id
+  const noteId = `note_${g.uid.replace(/-/g,'')}`;
+  // Most recent pending report id for status update
+  const pendingReport = g.reports.find(r => r.status === 'pending');
+  const reportId = pendingReport?.id || g.reports[0]?.id || '';
 
-  const actionsHtml = isDone
-    ? `<div style="color:#34D399;font-size:12px;padding:6px 2px">
-         ✓ ${r.status === 'actioned' ? 'Action taken' : 'Reviewed'}
-       </div>
-       ${isBlocked ? `<button class="btn-action nothing" style="font-size:10px;margin-top:4px" onclick="doAction('unblock','${r.id}','${u.id}','${noteId}')">↩ Unblock</button>` : ''}`
-    : `<textarea class="note-input" id="${noteId}" rows="1" placeholder="Admin note (optional)…"></textarea>
-       <div class="action-row">
-         <button class="btn-action nothing" onclick="doAction('do_nothing','${r.id}','${u.id}','${noteId}')">✓ OK</button>
-<button class="btn-action" onclick="doAction('block_3d','${r.id}','${u.id}','${noteId}')">3 Days</button>
-         <button class="btn-action" onclick="doAction('block_7d','${r.id}','${u.id}','${noteId}')">7 Days</button>
-       </div>
-       <div class="action-row">
-         <button class="btn-action danger" onclick="doAction('block_30d','${r.id}','${u.id}','${noteId}')">30 Days</button>
-         <button class="btn-action perm" onclick="confirmPerm('${r.id}','${u.id}','${noteId}','${escAttr(u.chitzy_name||'')}')">⛔ Permanent</button>
-       </div>
-       ${isBlocked ? `<button class="btn-action nothing" style="font-size:10px" onclick="doAction('unblock','${r.id}','${u.id}','${noteId}')">↩ Unblock</button>` : ''}`;
+  const uid = escHtml(g.uid);
+  const rId = escHtml(reportId);
+  const safeNote = `note_${g.uid.replace(/-/g,'')}`;
+  const safeName = escHtml(u.chitzy_name || '');
 
   return `
-  <tr class="${trClass}" id="row_${r.id.replace(/-/g,'')}">
-    <td>
-      <div class="user-cell">
-        <span class="user-name">${escHtml(u.chitzy_name || '—')} ${plan}</span>
-        <span class="user-phone">${escHtml(r.reported_user_phone || '—')}</span>
-        <span class="user-meta">Joined ${joined} · ${escHtml(u.id ? u.id.slice(0,8) : '—')}…</span>
+  <div class="user-group ${groupClass}" id="group_${g.uid.replace(/-/g,'')}">
+    <div class="user-row" onclick="togglePanel('${g.uid.replace(/-/g,'')}')">
+      <div class="user-info">
+        <div class="user-name">
+          <span class="expand-icon">▶</span>
+          ${escHtml(u.chitzy_name || '—')} ${plan}
+          ${g.pendingCount > 0 ? `<span style="background:rgba(249,115,22,0.2);color:#FB923C;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px">${g.pendingCount} pending</span>` : ''}
+        </div>
+        <div class="user-phone">${escHtml(g.phone)}</div>
+        <div class="user-meta">Joined ${joined} · ${g.reports.length} report${g.reports.length !== 1 ? 's' : ''}</div>
       </div>
-    </td>
-    <td><div class="msg-cell">${msgText}</div></td>
-    <td><div class="report-count ${countClass}">${reporters}</div></td>
-    <td>${blockStatus}</td>
-    <td class="time-cell">${reportedAt}</td>
-    <td><span class="status-badge ${r.status}">${r.status}</span></td>
-    <td><div class="actions-cell">${actionsHtml}</div></td>
-  </tr>`;
+      <div class="report-badge ${countClass}">
+        ${reporters}
+        <span>reporters</span>
+      </div>
+      <div class="latest-msg">${msgPreview}</div>
+      <div>${blockHtml}</div>
+      <div class="user-actions" onclick="event.stopPropagation()">
+        <textarea class="note-input" id="${safeNote}" rows="1" placeholder="Admin note…"></textarea>
+        <div class="action-row">
+          <button class="btn-action nothing" onclick="doAction('do_nothing','${rId}','${uid}','${safeNote}')">✓ OK</button>
+          <button class="btn-action" onclick="doAction('block_3d','${rId}','${uid}','${safeNote}')">3d</button>
+          <button class="btn-action" onclick="doAction('block_7d','${rId}','${uid}','${safeNote}')">7d</button>
+          <button class="btn-action danger" onclick="doAction('block_30d','${rId}','${uid}','${safeNote}')">30d</button>
+          <button class="btn-action perm" onclick="confirmPerm('${rId}','${uid}','${safeNote}','${safeName}')">⛔</button>
+        </div>
+        ${isBlocked ? `<button class="btn-action nothing" style="font-size:10px" onclick="doAction('unblock','${rId}','${uid}','${safeNote}')">↩ Unblock</button>` : ''}
+      </div>
+    </div>
+    <div class="reports-panel" id="panel_${g.uid.replace(/-/g,'')}">
+      ${g.reports.map(r => reportItemHtml(r)).join('')}
+    </div>
+  </div>`;
 }
 
-async function doAction(action, reportId, userId, noteId) {
-  // Confirm before applying timed blocks
-  if (['block_1m', 'block_3d', 'block_7d', 'block_30d'].includes(action)) {
-    const labels = { block_1m: '1 minute', block_3d: '3 days', block_7d: '7 days', block_30d: '30 days' };
-    const row = document.getElementById('row_' + reportId.replace(/-/g,''));
-    const name = row?.querySelector('.user-name')?.childNodes[0]?.textContent?.trim() || 'this user';
-    if (!confirm(`Block ${name} for ${labels[action]}?`)) return;
-  }
-  const note = document.getElementById(noteId)?.value || '';
-  const res = await callAdmin({ action, report_id: reportId, user_id: userId, admin_note: note });
-  if (res.error) { showToast('Error: ' + res.error, true); return; }
+function reportItemHtml(r) {
+  const msg = r.reported_message_text
+    ? r.reported_message_text.replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    : '<em style="color:#475569">No message text</em>';
+  const date = r.created_at
+    ? new Date(r.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'2-digit', hour:'2-digit', minute:'2-digit' })
+    : '—';
+  return `
+  <div class="report-item">
+    <div class="report-msg">${msg}</div>
+    <div class="report-date">${date}</div>
+    <div><span class="status-badge ${r.status}">${r.status}</span></div>
+  </div>`;
+}
 
+function togglePanel(uid) {
+  const row   = document.getElementById(`group_${uid}`);
+  const panel = document.getElementById(`panel_${uid}`);
+  const isOpen = panel.classList.contains('open');
+  panel.classList.toggle('open', !isOpen);
+  row.classList.toggle('expanded', !isOpen);
+}
+
+// ── ACTIONS ───────────────────────────────────────────────────────────────────
+async function doAction(action, reportId, userId, noteId) {
+  const note = document.getElementById(noteId)?.value || '';
+  const body = { action, report_id: reportId, user_id: userId, admin_note: note };
+  const res  = await callAdmin(body);
+  if (res.__totp_pending) return;
+  if (res.error) { showToast('Error: ' + res.error, true); return; }
+  handleActionResponse(res, body);
+}
+
+function handleActionResponse(res, body) {
+  const { action, report_id, user_id } = body;
   showToast(actionLabel(action));
 
-  // Update local state
-  const idx = allReports.findIndex(r => r.id === reportId);
-  if (idx !== -1) {
-    allReports[idx].status = action === 'do_nothing' ? 'reviewed' : 'actioned';
-    if (action === 'block_permanent') allReports[idx].reported_user.is_permanently_blocked = true;
-    if (action === 'unblock') {
-      allReports[idx].reported_user.is_permanently_blocked = false;
-      allReports[idx].reported_user.admin_blocked_until = null;
+  // Update all reports for this user in local state
+  for (const r of allReports) {
+    if (r.reported_user_id === user_id || r.reported_user?.id === user_id) {
+      if (action === 'do_nothing') {
+        if (r.id === report_id) r.status = 'reviewed';
+      } else if (action !== 'unblock') {
+        r.status = 'actioned';
+      }
+      if (action === 'block_permanent') r.reported_user.is_permanently_blocked = true;
+      if (action === 'unblock') {
+        r.reported_user.is_permanently_blocked = false;
+        r.reported_user.admin_blocked_until = null;
+      }
+      if (action === 'block_3d')  r.reported_user.admin_blocked_until = new Date(Date.now() + 3*86400000).toISOString();
+      if (action === 'block_7d')  r.reported_user.admin_blocked_until = new Date(Date.now() + 7*86400000).toISOString();
+      if (action === 'block_30d') r.reported_user.admin_blocked_until = new Date(Date.now() + 30*86400000).toISOString();
     }
-    if (action === 'block_1m') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 60000).toISOString();
-    if (action === 'block_3d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 3*86400000).toISOString();
-    if (action === 'block_7d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 7*86400000).toISOString();
-    if (action === 'block_30d') allReports[idx].reported_user.admin_blocked_until = new Date(Date.now() + 30*86400000).toISOString();
   }
-  renderTable();
+  processReports(allReports);
 }
 
 function confirmPerm(reportId, userId, noteId, name) {
-  if (confirm(`Permanently block ${name || 'this user'}?\n\nThis will also block their phone number and device. They cannot create a new account with the same number.`)) {
+  if (confirm(`Permanently block ${name || 'this user'}?\n\nThis blocks their phone + device. They cannot create a new account.`)) {
     doAction('block_permanent', reportId, userId, noteId);
   }
 }
 
 function actionLabel(a) {
-  return { do_nothing:'Marked as reviewed', block_1m:'Blocked for 1 minute', block_3d:'Blocked for 3 days', block_7d:'Blocked for 7 days', block_30d:'Blocked for 30 days', block_permanent:'Permanently blocked', unblock:'User unblocked' }[a] || 'Done';
+  return {
+    do_nothing:      'Marked as reviewed',
+    block_3d:        'Blocked for 3 days',
+    block_7d:        'Blocked for 7 days',
+    block_30d:       'Blocked for 30 days',
+    block_permanent: 'Permanently blocked',
+    unblock:         'User unblocked',
+  }[a] || 'Done';
 }
 
 // ── UTILS ─────────────────────────────────────────────────────────────────────
 function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-// escAttr also escapes ' — safe for use inside JS string literals in onclick attributes
-function escAttr(s) {
-  return escHtml(s).replace(/'/g,'&#39;');
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 let toastTimer;
@@ -622,7 +646,7 @@ function showToast(msg, isError) {
   toastTimer = setTimeout(() => { t.className = ''; }, 3000);
 }
 
-// Auto-load on page focus (when admin returns to tab)
+// Auto-refresh when tab regains focus
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden && adminPassword) loadReports();
 });
