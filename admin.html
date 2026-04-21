@@ -280,17 +280,6 @@
   </div>
 </div>
 
-<!-- TOTP REFRESH MODAL -->
-<div id="totp-modal">
-  <div class="totp-box">
-    <h3>2FA Code Expired</h3>
-    <p>Enter a fresh code from Google Authenticator to continue.</p>
-    <input type="text" id="totp-refresh-input" inputmode="numeric" maxlength="6" placeholder="000000"
-      onkeydown="if(event.key==='Enter')submitTotpRefresh()" />
-    <div class="totp-error" id="totp-refresh-error"></div>
-    <button class="btn-primary" onclick="submitTotpRefresh()">Continue</button>
-  </div>
-</div>
 
 <div id="toast"></div>
 
@@ -302,6 +291,7 @@ let allReports   = [];   // flat list from server
 let userGroups   = [];   // grouped by reported_user_id
 let currentFilter = 'pending';
 let searchQuery   = '';
+let sessionToken  = '';   // returned by server on login, valid 15 min — replaces TOTP on all subsequent calls
 let pendingAction = null; // { body } — replayed after TOTP refresh
 
 // ── SESSION TIMEOUT (15 min) ──────────────────────────────────────────────────
@@ -339,6 +329,7 @@ async function login() {
   }
   adminPassword = pass;
   adminTOTP = totp;
+  sessionToken = res.session_token || '';
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-screen').style.display = 'block';
   resetSessionTimer();
@@ -349,6 +340,7 @@ function logout() {
   clearTimeout(sessionTimer);
   adminPassword = '';
   adminTOTP = '';
+  sessionToken = '';
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-screen').style.display = 'none';
   document.getElementById('admin-pass').value = '';
@@ -358,49 +350,28 @@ function logout() {
 // ── API ───────────────────────────────────────────────────────────────────────
 async function callAdmin(body, pass, totp) {
   try {
-    const headers = {
-      'Content-Type': 'application/json',
-      'x-admin-password': pass || adminPassword,
-    };
-    const totpCode = totp || adminTOTP;
-    if (totpCode) headers['x-admin-totp'] = totpCode;
-    const res = await fetch(EDGE, { method: 'POST', headers, body: JSON.stringify(body) });
+    const headers = { 'Content-Type': 'application/json' };
+    if (pass || adminPassword) headers['x-admin-password'] = pass || adminPassword;
+    // Use session token for all calls after login — falls back to TOTP only on initial login
+    if (sessionToken && !pass) {
+      headers['x-admin-session'] = sessionToken;
+    } else {
+      const totpCode = totp || adminTOTP;
+      if (totpCode) headers['x-admin-totp'] = totpCode;
+    }
+    const res  = await fetch(EDGE, { method: 'POST', headers, body: JSON.stringify(body) });
     const data = await res.json();
-    // TOTP expired mid-session — prompt for fresh code
-    if (data.error === 'Invalid 2FA code' && adminPassword && !pass) {
-      pendingAction = body;
-      openTotpModal();
-      return { __totp_pending: true };
+    // Update session token if server refreshed it
+    if (data.session_token) sessionToken = data.session_token;
+    // Session expired — force logout so admin re-authenticates cleanly
+    if (data.error === 'Invalid 2FA code' || data.error === 'Unauthorized') {
+      logout();
+      document.getElementById('login-error').textContent = 'Session expired. Please sign in again.';
+      return { __session_expired: true };
     }
     return data;
   } catch (e) {
     return { error: e.message };
-  }
-}
-
-// ── TOTP REFRESH MODAL ────────────────────────────────────────────────────────
-function openTotpModal() {
-  document.getElementById('totp-modal').classList.add('open');
-  document.getElementById('totp-refresh-input').value = '';
-  document.getElementById('totp-refresh-error').textContent = '';
-  setTimeout(() => document.getElementById('totp-refresh-input').focus(), 100);
-}
-
-async function submitTotpRefresh() {
-  const code = document.getElementById('totp-refresh-input').value.trim();
-  if (!code) return;
-  adminTOTP = code;
-  document.getElementById('totp-modal').classList.remove('open');
-  if (pendingAction) {
-    const body = pendingAction;
-    pendingAction = null;
-    const res = await callAdmin(body);
-    if (res.error) { showToast('Error: ' + res.error, true); return; }
-    if (body.action === 'get_reports') {
-      processReports(res.reports || []);
-    } else {
-      handleActionResponse(res, body);
-    }
   }
 }
 
@@ -410,7 +381,7 @@ async function loadReports() {
   document.getElementById('groups-container').innerHTML = '';
   document.getElementById('empty-state').style.display = 'none';
   const res = await callAdmin({ action: 'get_reports' });
-  if (res.__totp_pending) return;
+  if (res.__session_expired) return;
   if (res.error) { showToast('Error: ' + res.error, true); return; }
   processReports(res.reports || []);
 }
@@ -669,7 +640,7 @@ async function doAction(action, reportId, userId, noteId) {
   const note = document.getElementById(noteId)?.value || '';
   const body = { action, report_id: reportId, user_id: userId, admin_note: note };
   const res  = await callAdmin(body);
-  if (res.__totp_pending) return;
+  if (res.__session_expired) return;
   if (res.error) { showToast('Error: ' + res.error, true); return; }
   handleActionResponse(res, body);
 }
