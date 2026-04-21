@@ -399,10 +399,19 @@ async function loadReports() {
 function processReports(reports) {
   allReports = reports;
 
-  // Group by reported_user_id
+  // Group by reported_user_id — skip reports where account was deleted (reported_user is null AND no device_id)
   const map = {};
+  const deletedGroup = { uid: '__deleted__', user: null, phone: '—', reports: [], pendingCount: 0, allActioned: true, isDeleted: true };
+
   for (const r of reports) {
-    const uid = r.reported_user_id || r.reported_user?.id || 'unknown';
+    const uid = r.reported_user_id || r.reported_user?.id;
+    if (!uid) {
+      // Account deleted — group separately if they have a device_id we can still block
+      deletedGroup.reports.push(r);
+      if (r.status === 'pending') deletedGroup.pendingCount++;
+      if (r.status !== 'actioned') deletedGroup.allActioned = false;
+      continue;
+    }
     if (!map[uid]) {
       map[uid] = {
         uid,
@@ -411,11 +420,17 @@ function processReports(reports) {
         reports: [],
         pendingCount: 0,
         allActioned: true,
+        isDeleted: false,
       };
     }
     map[uid].reports.push(r);
     if (r.status === 'pending') map[uid].pendingCount++;
     if (r.status !== 'actioned') map[uid].allActioned = false;
+  }
+
+  // Add deleted group at the bottom if it has unactioned reports
+  if (deletedGroup.reports.length && !deletedGroup.allActioned) {
+    map['__deleted__'] = deletedGroup;
   }
 
   // Sort: most pending first, then most reports
@@ -479,6 +494,9 @@ function renderGroups() {
 
 // ── RENDER ────────────────────────────────────────────────────────────────────
 function groupHtml(g) {
+  // Deleted account group
+  if (g.isDeleted) return deletedGroupHtml(g);
+
   const u = g.user;
   const reporters = g.reports[0]?.unique_reporters || 0;
   const countClass = reporters >= 10 ? 'high' : reporters >= 5 ? 'med' : 'low';
@@ -555,6 +573,52 @@ function groupHtml(g) {
       ${g.reports.map(r => reportItemHtml(r)).join('')}
     </div>
   </div>`;
+}
+
+function deletedGroupHtml(g) {
+  // Collect unique device_ids from reports (stored at report creation time)
+  const deviceIds = [...new Set(g.reports.map(r => r.reported_device_id).filter(Boolean))];
+  const latestMsg = g.reports[0]?.reported_message_text || '';
+  const msgPreview = latestMsg
+    ? escHtml(latestMsg.slice(0, 120)) + (latestMsg.length > 120 ? '…' : '')
+    : '<em style="color:#475569">No message text</em>';
+
+  return `
+  <div class="user-group" id="group___deleted__" style="border-color:rgba(255,255,255,0.08);opacity:0.7">
+    <div class="user-row" onclick="togglePanel('__deleted__')">
+      <div class="user-info">
+        <div class="user-name">
+          <span class="expand-icon">▶</span>
+          <span style="color:#475569">🗑 Deleted Accounts</span>
+          <span style="background:rgba(255,255,255,0.06);color:#475569;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px">${g.reports.length} reports</span>
+        </div>
+        <div class="user-meta">These users deleted their accounts</div>
+      </div>
+      <div class="report-badge low">${g.reports.length}<span>reports</span></div>
+      <div class="latest-msg">${msgPreview}</div>
+      <div>
+        ${deviceIds.length
+          ? `<span class="block-status temp">📱 ${deviceIds.length} device${deviceIds.length > 1 ? 's' : ''} on file</span>`
+          : '<span class="block-status clean">No device IDs</span>'}
+      </div>
+      <div class="user-actions" onclick="event.stopPropagation()">
+        ${deviceIds.length
+          ? deviceIds.map(did => `<button class="btn-action perm" style="font-size:10px;margin-bottom:3px" onclick="blockDevice('${escHtml(did)}')">⛔ Block Device …${escHtml(did.slice(-6))}</button>`).join('')
+          : '<span style="color:#475569;font-size:11px">Cannot block — no device ID stored</span>'}
+        <div style="color:#475569;font-size:10px;margin-top:4px">Add reported_device_id to reports table to enable device blocking</div>
+      </div>
+    </div>
+    <div class="reports-panel" id="panel___deleted__">
+      ${g.reports.map(r => reportItemHtml(r)).join('')}
+    </div>
+  </div>`;
+}
+
+async function blockDevice(deviceId) {
+  if (!confirm(`Block device …${deviceId.slice(-6)} permanently?\n\nThis user deleted their account but this device will be blocked from re-registering.`)) return;
+  // Insert directly into blocked_identifiers via a known user_id is not available —
+  // so we use a custom action. For now show instructions.
+  showToast('Run in Supabase SQL: INSERT INTO blocked_identifiers (type, value, reason) VALUES (\'device_id\', \'' + deviceId + '\', \'Admin block — deleted account\') ON CONFLICT (type,value) DO NOTHING;', true);
 }
 
 function reportItemHtml(r) {
