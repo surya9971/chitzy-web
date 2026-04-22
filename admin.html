@@ -439,14 +439,14 @@ function processReports(reports) {
         pendingCount: 0,
         allActioned: true,
         isDeleted: false,
-        deviceReportCount: 0,
+        deviceHistory: null,
       };
     }
     map[uid].reports.push(r);
     if (r.status === 'pending') map[uid].pendingCount++;
     if (r.status !== 'actioned') map[uid].allActioned = false;
-    if ((r.device_report_count || 0) > map[uid].deviceReportCount) {
-      map[uid].deviceReportCount = r.device_report_count;
+    if (r.device_history && !map[uid].deviceHistory) {
+      map[uid].deviceHistory = r.device_history;
     }
   }
 
@@ -576,7 +576,10 @@ function groupHtml(g) {
       <div class="report-badge ${countClass}">
         ${reporters}
         <span>reporters</span>
-        ${g.deviceReportCount > 0 ? `<span style="color:#FB923C;font-size:10px;margin-top:4px;white-space:nowrap">📱 ${g.deviceReportCount} on device</span>` : '<span style="color:#475569;font-size:10px;margin-top:4px;white-space:nowrap">📱 no device ID</span>'}
+        ${g.deviceHistory
+          ? `<span style="color:#FB923C;font-size:10px;margin-top:4px;display:block">📱 ${g.deviceHistory.total_reports} reports · ${g.deviceHistory.actioned_reports} blocked</span>
+             ${g.deviceHistory.all_usernames?.length > 1 ? `<span style="color:#475569;font-size:10px;display:block">was: ${g.deviceHistory.all_usernames.filter(n => n !== u.chitzy_name).join(', ')}</span>` : ''}`
+          : '<span style="color:#475569;font-size:10px;margin-top:4px;display:block">📱 no device history</span>'}
       </div>
       <div class="latest-msg">${msgPreview}</div>
       <div>${blockHtml}</div>
