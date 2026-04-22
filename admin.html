@@ -487,9 +487,9 @@ function renderGroups() {
 
   // Filter
   if (currentFilter === 'pending')  groups = groups.filter(g => g.pendingCount > 0);
-  if (currentFilter === 'actioned') groups = groups.filter(g => g.allActioned);
+  if (currentFilter === 'actioned') groups = groups.filter(g => g.allActioned && !g.isDeleted);
   if (currentFilter === 'blocked')  groups = groups.filter(g =>
-    g.user.is_permanently_blocked || (g.user.admin_blocked_until && new Date(g.user.admin_blocked_until) > new Date())
+    !g.isDeleted && (g.user?.is_permanently_blocked || (g.user?.admin_blocked_until && new Date(g.user.admin_blocked_until) > new Date()))
   );
   // 'all' — show everything
 
