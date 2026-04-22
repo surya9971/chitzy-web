@@ -504,7 +504,7 @@ async function showPermBlocks(btn) {
   container.innerHTML = blocks.map(b => {
     const dh = b.device_history;
     const usernames = dh?.all_usernames?.length ? dh.all_usernames.join(', ') : '—';
-    const blockedAt = new Date(b.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const blockedAt = new Date(b.blocked_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
     const safeDevice = escAttr(b.value);
     return `
       <div class="group-row" style="border-color:rgba(248,113,113,0.25)">
