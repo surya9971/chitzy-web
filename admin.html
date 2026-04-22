@@ -314,7 +314,7 @@ function resetSessionTimer() {
 
 // ── SESSION PERSISTENCE (survives page refresh, clears on tab close) ──────────
 function saveSession() {
-  sessionStorage.setItem('chitzy_admin', JSON.stringify({
+  localStorage.setItem('chitzy_admin', JSON.stringify({
     password: adminPassword,
     token:    sessionToken,
     savedAt:  Date.now(),
@@ -323,12 +323,12 @@ function saveSession() {
 
 function restoreSession() {
   try {
-    const raw = sessionStorage.getItem('chitzy_admin');
+    const raw = localStorage.getItem('chitzy_admin');
     if (!raw) return false;
     const { password, token, savedAt } = JSON.parse(raw);
     if (!password || !token) return false;
     if (Date.now() - savedAt > SESSION_TIMEOUT) {
-      sessionStorage.removeItem('chitzy_admin');
+      localStorage.removeItem('chitzy_admin');
       return false;
     }
     adminPassword = password;
@@ -367,7 +367,7 @@ function logout() {
   adminPassword = '';
   adminTOTP = '';
   sessionToken = '';
-  sessionStorage.removeItem('chitzy_admin');
+  localStorage.removeItem('chitzy_admin');
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-screen').style.display = 'none';
   document.getElementById('admin-pass').value = '';
@@ -439,11 +439,15 @@ function processReports(reports) {
         pendingCount: 0,
         allActioned: true,
         isDeleted: false,
+        deviceReportCount: 0,
       };
     }
     map[uid].reports.push(r);
     if (r.status === 'pending') map[uid].pendingCount++;
     if (r.status !== 'actioned') map[uid].allActioned = false;
+    if ((r.device_report_count || 0) > map[uid].deviceReportCount) {
+      map[uid].deviceReportCount = r.device_report_count;
+    }
   }
 
   // Add deleted group at the bottom if it has unactioned reports
@@ -567,7 +571,7 @@ function groupHtml(g) {
           ${g.pendingCount > 0 ? `<span style="background:rgba(249,115,22,0.2);color:#FB923C;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px">${g.pendingCount} pending</span>` : ''}
         </div>
         <div class="user-phone">${escHtml(g.phone)}</div>
-        <div class="user-meta">Joined ${joined} · ${g.reports.length} report${g.reports.length !== 1 ? 's' : ''}</div>
+        <div class="user-meta">Joined ${joined} · ${g.reports.length} report${g.reports.length !== 1 ? 's' : ''}${g.deviceReportCount > g.reports.length ? ` · <span style="color:#FB923C">📱 ${g.deviceReportCount} on device</span>` : ''}</div>
       </div>
       <div class="report-badge ${countClass}">
         ${reporters}
