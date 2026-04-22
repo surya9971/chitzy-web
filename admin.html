@@ -571,11 +571,12 @@ function groupHtml(g) {
           ${g.pendingCount > 0 ? `<span style="background:rgba(249,115,22,0.2);color:#FB923C;font-size:10px;font-weight:700;padding:1px 6px;border-radius:4px">${g.pendingCount} pending</span>` : ''}
         </div>
         <div class="user-phone">${escHtml(g.phone)}</div>
-        <div class="user-meta">Joined ${joined} · ${g.reports.length} report${g.reports.length !== 1 ? 's' : ''}${g.deviceReportCount > g.reports.length ? ` · <span style="color:#FB923C">📱 ${g.deviceReportCount} on device</span>` : ''}</div>
+        <div class="user-meta">Joined ${joined} · ${g.reports.length} report${g.reports.length !== 1 ? 's' : ''}</div>
       </div>
       <div class="report-badge ${countClass}">
         ${reporters}
         <span>reporters</span>
+        ${g.deviceReportCount > g.reports.length ? `<span style="color:#FB923C;font-size:10px;margin-top:4px;white-space:nowrap">📱 ${g.deviceReportCount} device</span>` : ''}
       </div>
       <div class="latest-msg">${msgPreview}</div>
       <div>${blockHtml}</div>
