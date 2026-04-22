@@ -697,9 +697,8 @@ function handleActionResponse(res, body) {
         r.reported_user.is_permanently_blocked = false;
         r.reported_user.admin_blocked_until = null;
       }
-      if (action === 'block_3d')  r.reported_user.admin_blocked_until = new Date(Date.now() + 3*86400000).toISOString();
-      if (action === 'block_7d')  r.reported_user.admin_blocked_until = new Date(Date.now() + 7*86400000).toISOString();
-      if (action === 'block_30d') r.reported_user.admin_blocked_until = new Date(Date.now() + 30*86400000).toISOString();
+      // Don't optimistically update admin_blocked_until — block timestamp + device count
+      // refresh only after clicking the Refresh button (so DB state is the source of truth)
     }
   }
   processReports(allReports);
