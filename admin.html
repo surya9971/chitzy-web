@@ -267,12 +267,14 @@
     <button class="filter-btn" onclick="setFilter('all',this)">All Users</button>
     <button class="filter-btn" onclick="setFilter('blocked',this)">Blocked</button>
     <button class="filter-btn" onclick="setFilter('actioned',this)">Actioned</button>
+    <button class="filter-btn" id="perm-blocks-btn" onclick="showPermBlocks(this)" style="border-color:rgba(248,113,113,0.4);color:#F87171">⛔ Perm Blocks</button>
     <input class="search-input" type="text" placeholder="Search name / phone / message…" oninput="applySearch(this.value)" />
   </div>
 
   <div class="table-wrap">
     <div id="loading-msg">Loading reports…</div>
     <div id="groups-container"></div>
+    <div id="perm-blocks-container" style="display:none"></div>
     <div id="empty-state" class="empty-state" style="display:none">
       <h3>No reports found</h3>
       <p>Nothing matches your current filter.</p>
@@ -474,7 +476,59 @@ function setFilter(f, btn) {
   currentFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
+  document.getElementById('perm-blocks-container').style.display = 'none';
+  document.getElementById('groups-container').style.display = '';
   renderGroups();
+}
+
+// ── PERMANENT BLOCKS VIEW ────────────────────────────────────────────────────
+async function showPermBlocks(btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('groups-container').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'none';
+  const container = document.getElementById('perm-blocks-container');
+  container.style.display = '';
+  container.innerHTML = '<div style="color:#475569;padding:20px">Loading permanent blocks…</div>';
+
+  const res = await callAdmin({ action: 'get_permanent_blocks' });
+  if (res.__session_expired) return;
+  if (res.error) { container.innerHTML = `<div style="color:#F87171;padding:20px">Error: ${res.error}</div>`; return; }
+
+  const blocks = (res.blocks || []).filter(b => b.type === 'device_id');
+  if (!blocks.length) {
+    container.innerHTML = '<div style="color:#475569;padding:20px;text-align:center">No permanent device blocks.</div>';
+    return;
+  }
+
+  container.innerHTML = blocks.map(b => {
+    const dh = b.device_history;
+    const usernames = dh?.all_usernames?.length ? dh.all_usernames.join(', ') : '—';
+    const blockedAt = new Date(b.created_at).toLocaleDateString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+    const safeDevice = escAttr(b.value);
+    return `
+      <div class="group-row" style="border-color:rgba(248,113,113,0.25)">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap">
+          <div>
+            <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:14px;color:#F87171">⛔ ${escHtml(b.value.slice(-12))}</div>
+            <div style="font-size:11px;color:#475569;margin-top:3px">${escHtml(b.reason)}</div>
+            <div style="font-size:11px;color:#475569;margin-top:2px">Blocked ${blockedAt}</div>
+            ${dh ? `<div style="font-size:11px;color:#FB923C;margin-top:4px">📱 ${dh.total_reports} reports · ${dh.actioned_reports} blocked</div>` : ''}
+            <div style="font-size:11px;color:#94A3B8;margin-top:3px">Accounts: ${escHtml(usernames)}</div>
+          </div>
+          <button class="btn-action nothing" style="font-size:11px;white-space:nowrap" onclick="unblockDevice('${safeDevice}')">↩ Unblock Device</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+async function unblockDevice(deviceId) {
+  if (!confirm(`Unblock device …${deviceId.slice(-8)}?\n\nAll accounts on this device will be unblocked.`)) return;
+  const res = await callAdmin({ action: 'unblock_device', device_id: deviceId });
+  if (res.__session_expired) return;
+  if (res.error) { showToast('Error: ' + res.error, true); return; }
+  showToast('Device unblocked');
+  showPermBlocks(document.getElementById('perm-blocks-btn'));
 }
 
 function applySearch(q) {
