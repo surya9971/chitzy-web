@@ -312,6 +312,31 @@ function resetSessionTimer() {
   document.addEventListener(evt, () => { if (adminPassword) resetSessionTimer(); }, { passive: true })
 );
 
+// ── SESSION PERSISTENCE (survives page refresh, clears on tab close) ──────────
+function saveSession() {
+  sessionStorage.setItem('chitzy_admin', JSON.stringify({
+    password: adminPassword,
+    token:    sessionToken,
+    savedAt:  Date.now(),
+  }));
+}
+
+function restoreSession() {
+  try {
+    const raw = sessionStorage.getItem('chitzy_admin');
+    if (!raw) return false;
+    const { password, token, savedAt } = JSON.parse(raw);
+    if (!password || !token) return false;
+    if (Date.now() - savedAt > SESSION_TIMEOUT) {
+      sessionStorage.removeItem('chitzy_admin');
+      return false;
+    }
+    adminPassword = password;
+    sessionToken  = token;
+    return true;
+  } catch { return false; }
+}
+
 // ── AUTH ─────────────────────────────────────────────────────────────────────
 async function login() {
   const pass = document.getElementById('admin-pass').value.trim();
@@ -330,6 +355,7 @@ async function login() {
   adminPassword = pass;
   adminTOTP = totp;
   sessionToken = res.session_token || '';
+  saveSession();
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('main-screen').style.display = 'block';
   resetSessionTimer();
@@ -341,6 +367,7 @@ function logout() {
   adminPassword = '';
   adminTOTP = '';
   sessionToken = '';
+  sessionStorage.removeItem('chitzy_admin');
   document.getElementById('login-screen').style.display = 'flex';
   document.getElementById('main-screen').style.display = 'none';
   document.getElementById('admin-pass').value = '';
@@ -362,9 +389,9 @@ async function callAdmin(body, pass, totp) {
     const res  = await fetch(EDGE, { method: 'POST', headers, body: JSON.stringify(body) });
     const data = await res.json();
     // Update session token if server refreshed it
-    if (data.session_token) sessionToken = data.session_token;
+    if (data.session_token) { sessionToken = data.session_token; saveSession(); }
     // Session expired — force logout so admin re-authenticates cleanly
-    if (data.error === 'Invalid 2FA code' || data.error === 'Unauthorized') {
+    if (data.error === 'Invalid 2FA code' || data.error === 'Unauthorized' || data.error === '2FA code required') {
       logout();
       document.getElementById('login-error').textContent = 'Session expired. Please sign in again.';
       return { __session_expired: true };
@@ -699,6 +726,14 @@ function showToast(msg, isError) {
   t.className = 'show' + (isError ? ' error' : '');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => { t.className = ''; }, 3000);
+}
+
+// Auto-restore session on page load (survives refresh within 15 min)
+if (restoreSession()) {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('main-screen').style.display = 'block';
+  resetSessionTimer();
+  loadReports();
 }
 
 // Auto-refresh when tab regains focus
