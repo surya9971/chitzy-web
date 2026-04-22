@@ -576,7 +576,7 @@ function groupHtml(g) {
       <div class="report-badge ${countClass}">
         ${reporters}
         <span>reporters</span>
-        ${g.deviceReportCount > g.reports.length ? `<span style="color:#FB923C;font-size:10px;margin-top:4px;white-space:nowrap">📱 ${g.deviceReportCount} device</span>` : ''}
+        ${g.deviceReportCount > 0 ? `<span style="color:#FB923C;font-size:10px;margin-top:4px;white-space:nowrap">📱 ${g.deviceReportCount} on device</span>` : '<span style="color:#475569;font-size:10px;margin-top:4px;white-space:nowrap">📱 no device ID</span>'}
       </div>
       <div class="latest-msg">${msgPreview}</div>
       <div>${blockHtml}</div>
