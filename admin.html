@@ -229,6 +229,25 @@
     }
     .totp-box input:focus { border-color: #0D9488; }
     .totp-error { color: #F87171; font-size: 12px; margin-bottom: 8px; }
+
+    /* ── PAYMENTS TABLE ── */
+    #payments-section { padding: 0 24px 40px; }
+    .pay-toolbar { display:flex; gap:8px; align-items:center; margin-bottom:16px; }
+    .payments-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .payments-table th { text-align:left; padding:10px 12px; color:#475569; font-weight:600; font-size:11px; border-bottom:1px solid rgba(255,255,255,0.06); text-transform:uppercase; letter-spacing:0.5px; white-space:nowrap; }
+    .payments-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,0.04); vertical-align:middle; }
+    .payments-table tr:hover td { background:rgba(255,255,255,0.02); }
+    .pay-badge-success { background:rgba(52,211,153,0.15); color:#34D399; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; white-space:nowrap; }
+    .pay-badge-failed  { background:rgba(248,113,113,0.15); color:#F87171;  padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; white-space:nowrap; }
+    .pay-badge-stale   { background:rgba(249,115,22,0.15);  color:#FB923C;  padding:2px 8px; border-radius:4px; font-size:11px; font-weight:600; white-space:nowrap; }
+    .btn-grant { padding:4px 10px; border-radius:6px; border:1px solid rgba(13,148,136,0.3); background:transparent; color:#5EEAD4; font-size:11px; cursor:pointer; margin-right:4px; white-space:nowrap; }
+    .btn-grant:hover { background:rgba(13,148,136,0.15); border-color:#0D9488; }
+    .btn-grant:disabled { opacity:0.4; cursor:default; }
+    .pay-uid { font-family:monospace; font-size:11px; color:#475569; }
+    .pay-pagination { display:flex; align-items:center; gap:12px; padding:16px 0; justify-content:center; }
+    .btn-page { padding:6px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:#94A3B8; cursor:pointer; font-size:13px; }
+    .btn-page:hover:not(:disabled) { border-color:#0D9488; color:#0D9488; }
+    .btn-page:disabled { opacity:0.3; cursor:default; }
   </style>
 </head>
 <body>
@@ -268,7 +287,8 @@
     <button class="filter-btn" onclick="setFilter('blocked',this)">Blocked</button>
     <button class="filter-btn" onclick="setFilter('actioned',this)">Actioned</button>
     <button class="filter-btn" id="perm-blocks-btn" onclick="showPermBlocks(this)" style="border-color:rgba(248,113,113,0.4);color:#F87171">⛔ Perm Blocks</button>
-    <input class="search-input" type="text" placeholder="Search name / phone / message…" oninput="applySearch(this.value)" />
+    <button class="filter-btn" onclick="showPayments(this)">💳 Payments</button>
+    <input class="search-input" type="text" id="reports-search" placeholder="Search name / phone / message…" oninput="applySearch(this.value)" />
   </div>
 
   <div class="table-wrap">
@@ -278,6 +298,34 @@
     <div id="empty-state" class="empty-state" style="display:none">
       <h3>No reports found</h3>
       <p>Nothing matches your current filter.</p>
+    </div>
+  </div>
+
+  <!-- PAYMENTS SECTION -->
+  <div id="payments-section" style="display:none">
+    <div class="pay-toolbar">
+      <input type="text" id="pay-search-input" class="search-input" style="margin-left:0;width:300px" placeholder="Filter by user ID (paste full UUID)…" oninput="paySearchChanged(this.value)" />
+      <button class="btn-primary" style="width:auto;padding:7px 16px;font-size:13px" onclick="loadPayments(0)">↻ Refresh</button>
+      <span id="pay-total-label" style="color:#475569;font-size:12px"></span>
+    </div>
+    <div id="pay-loading" style="text-align:center;padding:40px;color:#475569;display:none">Loading payment logs…</div>
+    <table class="payments-table" id="pay-table" style="display:none">
+      <thead>
+        <tr>
+          <th>User</th><th>Provider</th><th>Plan</th><th>Status</th>
+          <th>Error / Note</th><th>Expires</th><th>Date</th><th>Grant Pro</th>
+        </tr>
+      </thead>
+      <tbody id="pay-tbody"></tbody>
+    </table>
+    <div class="pay-pagination" id="pay-pagination" style="display:none">
+      <button class="btn-page" id="pay-prev" onclick="loadPayments(payPage-1)" disabled>← Prev</button>
+      <span id="pay-page-info" style="color:#475569;font-size:13px"></span>
+      <button class="btn-page" id="pay-next" onclick="loadPayments(payPage+1)">Next →</button>
+    </div>
+    <div id="pay-empty" style="text-align:center;padding:60px;color:#475569;display:none">
+      <div style="font-size:18px;color:#94A3B8;margin-bottom:8px">No payment logs found</div>
+      <p>Try a different user ID or check back after purchases are made.</p>
     </div>
   </div>
 </div>
@@ -473,16 +521,21 @@ function processReports(reports) {
 }
 
 function setFilter(f, btn) {
+  document.getElementById('perm-blocks-container').style.display = 'none';
+  document.getElementById('payments-section').style.display = 'none';
+  document.getElementById('groups-container').style.display = '';
+  document.getElementById('reports-search').style.display = '';
+  inPaymentsView = false;
   currentFilter = f;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  document.getElementById('perm-blocks-container').style.display = 'none';
-  document.getElementById('groups-container').style.display = '';
   renderGroups();
 }
 
 // ── PERMANENT BLOCKS VIEW ────────────────────────────────────────────────────
 async function showPermBlocks(btn) {
+  document.getElementById('payments-section').style.display = 'none';
+  inPaymentsView = false;
   document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('groups-container').style.display = 'none';
@@ -799,8 +852,135 @@ if (restoreSession()) {
 
 // Auto-refresh when tab regains focus
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && adminPassword) loadReports();
+  if (!document.hidden && adminPassword) {
+    if (inPaymentsView) loadPayments(payPage);
+    else loadReports();
+  }
 });
+
+// ── PAYMENTS ─────────────────────────────────────────────────────────────────
+let payPage        = 0;
+const PAY_PER_PAGE = 40;
+let paySearchUid   = '';
+let inPaymentsView = false;
+let paySearchTimer;
+
+function showPayments(btn) {
+  inPaymentsView = true;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('groups-container').style.display = 'none';
+  document.getElementById('perm-blocks-container').style.display = 'none';
+  document.getElementById('empty-state').style.display = 'none';
+  document.getElementById('loading-msg').style.display = 'none';
+  document.getElementById('reports-search').style.display = 'none';
+  document.getElementById('payments-section').style.display = 'block';
+  loadPayments(0);
+}
+
+function paySearchChanged(val) {
+  clearTimeout(paySearchTimer);
+  paySearchUid = val.trim();
+  paySearchTimer = setTimeout(() => loadPayments(0), 500);
+}
+
+async function loadPayments(page) {
+  payPage = page || 0;
+  document.getElementById('pay-loading').style.display = 'block';
+  document.getElementById('pay-table').style.display = 'none';
+  document.getElementById('pay-pagination').style.display = 'none';
+  document.getElementById('pay-empty').style.display = 'none';
+  document.getElementById('pay-total-label').textContent = '';
+
+  const body = { action: 'get_payment_logs', page: payPage, per_page: PAY_PER_PAGE };
+  if (paySearchUid) body.search_user_id = paySearchUid;
+
+  const res = await callAdmin(body);
+  if (res.__session_expired) return;
+  document.getElementById('pay-loading').style.display = 'none';
+  if (res.error) { showToast('Error: ' + res.error, true); return; }
+  renderPayments(res.logs || [], res.total || 0);
+}
+
+function renderPayments(logs, total) {
+  if (!logs.length) { document.getElementById('pay-empty').style.display = 'block'; return; }
+
+  const now = new Date();
+  document.getElementById('pay-tbody').innerHTML = logs.map(l => {
+    const isStale  = l.status === 'success' && l.expires_at && new Date(l.expires_at) <= now;
+    const isFailed = l.status === 'failed';
+    const isOk     = l.status === 'success' && !isStale;
+
+    const badge = isFailed ? '<span class="pay-badge-failed">Failed</span>'
+                : isStale  ? '<span class="pay-badge-stale">Stale ⚠</span>'
+                :            '<span class="pay-badge-success">Success ✓</span>';
+
+    const provider = l.provider === 'apple_iap'  ? '🍎 Apple'
+                   : l.provider === 'google_play' ? '🤖 Google'
+                   : escHtml(l.provider || '—');
+
+    const plan = l.plan_type === 'yearly' ? '1 Year' : l.plan_type === 'monthly' ? '1 Month' : escHtml(l.plan_type || '—');
+
+    const errNote = isFailed && l.error_message
+      ? `<span style="color:#F87171;font-size:11px" title="${escHtml(l.error_message)}">${escHtml(l.error_message.slice(0,60))}${l.error_message.length > 60 ? '…' : ''}</span>`
+      : isStale ? '<span style="color:#FB923C;font-size:11px">Old JWS — stale sandbox tx</span>' : '—';
+
+    const expiresColor = (isStale || isFailed) ? '#F87171' : '#34D399';
+    const expires = l.expires_at
+      ? `<span style="color:${expiresColor};font-size:11px">${new Date(l.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'})}</span>`
+      : '—';
+
+    const date = l.created_at
+      ? new Date(l.created_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'})
+      : '—';
+
+    const name   = l.chitzy_name ? `<div style="font-weight:600;color:#F1F5F9;margin-bottom:2px">${escHtml(l.chitzy_name)}</div>` : '';
+    const uid    = l.user_id ? `<div class="pay-uid" title="${escHtml(l.user_id)}">${l.user_id.slice(0,8)}…</div>` : '—';
+    const safeUid  = escHtml(l.user_id || '');
+    const safeName = escHtml(l.chitzy_name || l.user_id || '');
+
+    const grantBtns = (isFailed || isStale) && l.user_id
+      ? `<button class="btn-grant" onclick="grantPro('${safeUid}','monthly','${safeName}',this)">+1 Month</button>
+         <button class="btn-grant" onclick="grantPro('${safeUid}','yearly','${safeName}',this)">+1 Year</button>`
+      : isOk ? '<span style="color:#34D399;font-size:11px">Active ✓</span>' : '—';
+
+    return `<tr>
+      <td>${name}${uid}</td>
+      <td style="white-space:nowrap">${provider}</td>
+      <td style="white-space:nowrap">${plan}</td>
+      <td>${badge}</td>
+      <td style="max-width:200px">${errNote}</td>
+      <td>${expires}</td>
+      <td style="color:#475569;font-size:11px;white-space:nowrap">${escHtml(date)}</td>
+      <td style="white-space:nowrap">${grantBtns}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('pay-table').style.display = 'table';
+  document.getElementById('pay-total-label').textContent = `${total} total log${total !== 1 ? 's' : ''}`;
+
+  const totalPages = Math.ceil(total / PAY_PER_PAGE);
+  if (totalPages > 1) {
+    document.getElementById('pay-page-info').textContent = `Page ${payPage + 1} of ${totalPages}`;
+    document.getElementById('pay-prev').disabled = payPage === 0;
+    document.getElementById('pay-next').disabled = payPage >= totalPages - 1;
+    document.getElementById('pay-pagination').style.display = 'flex';
+  }
+}
+
+async function grantPro(userId, duration, name, btn) {
+  const label = duration === 'yearly' ? '1 year' : '1 month';
+  if (!confirm(`Grant Pro (${label}) to ${name}?\n\nThis manually activates their subscription until ${label} from now.`)) return;
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = '…';
+  const res = await callAdmin({ action: 'grant_pro', user_id: userId, duration });
+  if (res.__session_expired) return;
+  if (res.error) { showToast('Error: ' + res.error, true); btn.disabled = false; btn.textContent = orig; return; }
+  const until = new Date(res.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
+  showToast(`✓ Pro granted to ${name} until ${until}`);
+  setTimeout(() => loadPayments(payPage), 800);
+}
 </script>
 </body>
 </html>
