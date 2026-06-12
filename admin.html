@@ -1052,11 +1052,52 @@ async function togglePayRow(ev, tr, userId) {
     detailRow.querySelector('td').innerHTML = `<span style="color:#F87171;font-size:12px">Error: ${escHtml(res.error)}</span>`;
     return;
   }
-  const f  = v => (v != null && v !== '') ? escHtml(String(v)) : '<span style="color:#475569">—</span>';
-  const fd = iso => iso ? new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : null;
+
+  const f   = v => (v != null && v !== '') ? escHtml(String(v)) : '<span style="color:#475569">—</span>';
+  const fd  = iso => iso ? new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : null;
   const lbl = t => `<div style="color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">${t}</div>`;
+
+  const txCell = (txId) => {
+    if (!txId) return '<span style="color:#475569">—</span>';
+    const safe = escHtml(txId);
+    const short = txId.length > 20 ? txId.slice(0,10) + '…' + txId.slice(-6) : txId;
+    return `<span style="font-family:monospace;font-size:10px;color:#94A3B8;cursor:pointer;user-select:all" title="${safe}">${escHtml(short)}</span>`;
+  };
+
+  const providerLabel = p => ({
+    apple_iap: '🍎 Apple', google_play: '▶ Google', admin_grant: '🛡️ Admin', legacy: 'legacy',
+  }[p] || escHtml(p || '—'));
+
+  const statusBadge = l => {
+    const now = new Date();
+    const isExpired = l.expires_at && new Date(l.expires_at) <= now;
+    const isSuccess = l.status === 'success' || l.status == null;
+    const isStale   = isSuccess && (isExpired || (!l.expires_at && l.provider === 'legacy'));
+    if (l.status === 'failed') return '<span style="color:#F87171">✗ Failed</span>';
+    if (isStale)               return '<span style="color:#F97316">⚠ Stale</span>';
+    if (isSuccess)             return '<span style="color:#34D399">✓ Active</span>';
+    return '<span style="color:#94A3B8">—</span>';
+  };
+
+  const history = res.payment_history || [];
+  const historyRows = history.length === 0
+    ? `<tr><td colspan="7" style="padding:10px 8px;color:#475569;font-size:11px;text-align:center">No payment records</td></tr>`
+    : history.map(l => {
+        const origTx = l.original_transaction_id && l.original_transaction_id !== l.transaction_id
+          ? `<div style="margin-top:2px;color:#475569;font-size:10px">orig: ${txCell(l.original_transaction_id)}</div>` : '';
+        return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
+          <td style="padding:5px 8px;color:#94A3B8">${escHtml(fd(l.created_at) || '—')}</td>
+          <td style="padding:5px 8px">${providerLabel(l.provider)}</td>
+          <td style="padding:5px 8px;color:#94A3B8">${escHtml(l.plan_type || '—')}</td>
+          <td style="padding:5px 8px">${statusBadge(l)}</td>
+          <td style="padding:5px 8px;color:#94A3B8">${l.amount ? '₹' + escHtml(String(l.amount)) : '—'}</td>
+          <td style="padding:5px 8px;color:#94A3B8">${escHtml(fd(l.expires_at) || '—')}</td>
+          <td style="padding:5px 8px">${txCell(l.transaction_id)}${origTx}</td>
+        </tr>`;
+      }).join('');
+
   detailRow.querySelector('td').innerHTML = `
-    <div style="display:flex;gap:28px;flex-wrap:wrap;font-size:12px;line-height:1.8">
+    <div style="display:flex;gap:28px;flex-wrap:wrap;font-size:12px;line-height:1.8;margin-bottom:16px">
       <div>${lbl('Phone / Contact')}<div style="color:#F1F5F9;font-weight:600">${f(res.phone)}</div></div>
       <div>${lbl('Email')}<div style="color:#F1F5F9;font-weight:600">${f(res.email)}</div></div>
       <div>${lbl('Chitzy Name')}<div style="color:#F1F5F9;font-weight:600">${f(res.chitzy_name)}</div></div>
@@ -1065,6 +1106,23 @@ async function togglePayRow(ev, tr, userId) {
       <div>${lbl('Joined')}<div style="color:#F1F5F9">${f(fd(res.created_at))}</div></div>
       <div>${lbl('Last Active')}<div style="color:#F1F5F9">${f(fd(res.last_sign_in_at))}</div></div>
       <div>${lbl('Full User ID')}<div style="font-family:monospace;font-size:10px;color:#94A3B8;user-select:all">${f(userId)}</div></div>
+    </div>
+    <div>
+      <div style="color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px">Payment History (${history.length})</div>
+      <table style="width:100%;border-collapse:collapse;font-size:11px">
+        <thead>
+          <tr style="color:#475569;border-bottom:1px solid rgba(255,255,255,0.08)">
+            <th style="text-align:left;padding:4px 8px;font-weight:500">Date</th>
+            <th style="text-align:left;padding:4px 8px;font-weight:500">Provider</th>
+            <th style="text-align:left;padding:4px 8px;font-weight:500">Plan</th>
+            <th style="text-align:left;padding:4px 8px;font-weight:500">Status</th>
+            <th style="text-align:left;padding:4px 8px;font-weight:500">Amount</th>
+            <th style="text-align:left;padding:4px 8px;font-weight:500">Expires</th>
+            <th style="text-align:left;padding:4px 8px;font-weight:500">Transaction ID</th>
+          </tr>
+        </thead>
+        <tbody>${historyRows}</tbody>
+      </table>
     </div>`;
 }
 </script>
