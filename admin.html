@@ -979,10 +979,13 @@ function renderPayments(logs, total) {
     const storedName  = escHtml(l.chitzy_name || '');
     const storedEmail = escHtml(l.email || '');
     const storedTxId  = escHtml(l.transaction_id || '');
-    const txShort = l.transaction_id
-      ? `<span style="font-family:monospace;font-size:10px;color:#475569;cursor:pointer;user-select:all" title="${escHtml(l.transaction_id)}">${escHtml(l.transaction_id.slice(0,10))}…</span>`
-      : '<span style="color:#475569">—</span>';
-    return `<tr class="pay-row-clickable" data-uid="${safeUid}" data-stored-name="${storedName}" data-stored-email="${storedEmail}" data-stored-txid="${storedTxId}" onclick="togglePayRow(event,this,'${safeUid}')">
+    const storedOrdId = escHtml(l.order_id || '');
+    const txShort = l.order_id
+      ? `<span style="font-family:monospace;font-size:10px;color:#94A3B8;cursor:pointer;user-select:all" title="${escHtml(l.order_id)}">${escHtml(l.order_id)}</span>`
+      : l.transaction_id
+        ? `<span style="font-family:monospace;font-size:10px;color:#475569;cursor:pointer;user-select:all" title="${escHtml(l.transaction_id)}">${escHtml(l.transaction_id.slice(0,10))}…</span>`
+        : '<span style="color:#475569">—</span>';
+    return `<tr class="pay-row-clickable" data-uid="${safeUid}" data-stored-name="${storedName}" data-stored-email="${storedEmail}" data-stored-txid="${storedTxId}" data-stored-orderid="${storedOrdId}" onclick="togglePayRow(event,this,'${safeUid}')">
       <td>${name}${uid}</td>
       <td style="white-space:nowrap">${provider}</td>
       <td style="white-space:nowrap">${plan}</td>
@@ -1059,15 +1062,16 @@ async function togglePayRow(ev, tr, userId) {
   if (!userId) {
     const sName  = tr.dataset.storedName  || '';
     const sEmail = tr.dataset.storedEmail || '';
-    const sTxId  = tr.dataset.storedTxid  || '';
+    const sTxId  = tr.dataset.storedTxid   || '';
+    const sOrdId = tr.dataset.storedOrderid || '';
     detailRow.querySelector('td').innerHTML = `
       <div style="font-size:12px">
         <span style="color:#F97316;font-weight:600">⚠ Account deleted</span>
         <div style="margin-top:10px;display:flex;gap:24px;flex-wrap:wrap">
           <div>${lbl('Last Known Name')}<div style="color:#F1F5F9;font-weight:600">${sName ? escHtml(sName) : '<span style=\'color:#475569\'>—</span>'}</div></div>
           <div>${lbl('Last Known Email')}<div style="color:#F1F5F9;font-weight:600">${sEmail ? escHtml(sEmail) : '<span style=\'color:#475569\'>—</span>'}</div></div>
-          <div>${lbl('Transaction ID')}<div style="font-family:monospace;font-size:11px;color:#94A3B8;user-select:all;word-break:break-all">${sTxId ? escHtml(sTxId) : '<span style=\'color:#475569\'>—</span>'}</div></div>
-          <div>${lbl('Note')}<div style="color:#475569">Look up this transaction ID in Apple/Google console.</div></div>
+          ${sOrdId ? `<div>${lbl('Order ID (searchable in Play Console)')}<div style="font-family:monospace;font-size:11px;color:#94A3B8;user-select:all">${escHtml(sOrdId)}</div></div>` : ''}
+          <div>${lbl('Purchase Token')}<div style="font-family:monospace;font-size:11px;color:#475569;user-select:all;word-break:break-all">${sTxId ? escHtml(sTxId) : '<span style=\'color:#475569\'>—</span>'}</div></div>
         </div>
       </div>`;
     return;
@@ -1113,6 +1117,9 @@ async function togglePayRow(ev, tr, userId) {
           ? `<div style="color:#F1F5F9">${l.chitzy_name ? escHtml(l.chitzy_name) : '<span style="color:#475569">—</span>'}</div>`
             + (l.email ? `<div style="color:#475569;font-size:10px">${escHtml(l.email)}</div>` : '')
           : '<span style="color:#475569">—</span>';
+        const orderCell = l.order_id
+          ? `<div style="font-family:monospace;font-size:10px;color:#94A3B8;user-select:all">${escHtml(l.order_id)}</div>`
+          : '';
         return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
           <td style="padding:5px 8px;color:#94A3B8">${escHtml(fd(l.created_at) || '—')}</td>
           <td style="padding:5px 8px">${userCell}</td>
@@ -1121,7 +1128,7 @@ async function togglePayRow(ev, tr, userId) {
           <td style="padding:5px 8px">${statusBadge(l)}</td>
           <td style="padding:5px 8px;color:#94A3B8">${l.amount ? '₹' + escHtml(String(l.amount)) : '—'}</td>
           <td style="padding:5px 8px;color:#94A3B8">${escHtml(fd(l.expires_at) || '—')}</td>
-          <td style="padding:5px 8px">${txCell(l.transaction_id)}${origTx}</td>
+          <td style="padding:5px 8px">${orderCell}${txCell(l.transaction_id)}${origTx}</td>
         </tr>`;
       }).join('');
 
