@@ -248,6 +248,15 @@
     .btn-page { padding:6px 16px; border-radius:8px; border:1px solid rgba(255,255,255,0.1); background:transparent; color:#94A3B8; cursor:pointer; font-size:13px; }
     .btn-page:hover:not(:disabled) { border-color:#0D9488; color:#0D9488; }
     .btn-page:disabled { opacity:0.3; cursor:default; }
+    .pay-header { padding: 20px 0 14px; }
+    .pay-header h2 { color: #F1F5F9; font-size: 16px; font-weight: 600; margin: 0 0 4px; }
+    .pay-header p { color: #94A3B8; font-size: 12px; margin: 0 0 12px; line-height: 1.6; }
+    .pay-legend { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; font-size: 12px; color: #94A3B8; }
+    .pay-legend-item { display: flex; align-items: center; gap: 7px; }
+    .pay-row-clickable { cursor: pointer; }
+    .pay-row-clickable:hover td { background: rgba(255,255,255,0.03) !important; }
+    .pay-row-expanded > td { background: rgba(13,148,136,0.04) !important; }
+    .pay-detail-row > td { padding: 12px 16px 16px; background: rgba(13,148,136,0.05); border-left: 3px solid rgba(13,148,136,0.3); border-bottom: 1px solid rgba(13,148,136,0.15); }
   </style>
 </head>
 <body>
@@ -303,6 +312,15 @@
 
   <!-- PAYMENTS SECTION -->
   <div id="payments-section" style="display:none">
+    <div class="pay-header">
+      <h2>Payment Logs — All Purchase Attempts</h2>
+      <p>Every time a user tried to buy Pro is logged here, whether it succeeded or not. Use <strong style="color:#F1F5F9">Grant Pro</strong> on any Failed or Stale row if a user was charged but didn't receive access. Click any row to see their contact details.</p>
+      <div class="pay-legend">
+        <div class="pay-legend-item"><span class="pay-badge-success">Success ✓</span> Pro is active on this account</div>
+        <div class="pay-legend-item"><span class="pay-badge-stale">Stale ⚠</span> Payment went through but subscription has since expired — grant Pro if they renewed</div>
+        <div class="pay-legend-item"><span class="pay-badge-failed">Failed</span> Apple / Google rejected the payment — grant Pro manually if they were actually charged</div>
+      </div>
+    </div>
     <div class="pay-toolbar">
       <input type="text" id="pay-search-input" class="search-input" style="margin-left:0;width:300px" placeholder="Search by username…" oninput="paySearchChanged(this.value)" />
       <button class="btn-primary" style="width:auto;padding:7px 16px;font-size:13px" onclick="loadPayments(0)">↻ Refresh</button>
@@ -944,7 +962,7 @@ function renderPayments(logs, total) {
          <button class="btn-grant" onclick="grantPro('${safeUid}','yearly','${safeName}',this)">+1 Year</button>`
       : isOk ? '<span style="color:#34D399;font-size:11px">Active ✓</span>' : '—';
 
-    return `<tr>
+    return `<tr class="pay-row-clickable" onclick="togglePayRow(event,this,'${safeUid}')">
       <td>${name}${uid}</td>
       <td style="white-space:nowrap">${provider}</td>
       <td style="white-space:nowrap">${plan}</td>
@@ -980,6 +998,43 @@ async function grantPro(userId, duration, name, btn) {
   const until = new Date(res.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
   showToast(`✓ Pro granted to ${name} until ${until}`);
   setTimeout(() => loadPayments(payPage), 800);
+}
+
+async function togglePayRow(ev, tr, userId) {
+  if (ev.target.closest('button')) return;
+  const next = tr.nextElementSibling;
+  if (next && next.classList.contains('pay-detail-row')) {
+    next.remove(); tr.classList.remove('pay-row-expanded'); return;
+  }
+  document.querySelectorAll('.pay-detail-row').forEach(r => r.remove());
+  document.querySelectorAll('.pay-row-expanded').forEach(r => r.classList.remove('pay-row-expanded'));
+  tr.classList.add('pay-row-expanded');
+  const cols = tr.cells.length;
+  const detailRow = document.createElement('tr');
+  detailRow.className = 'pay-detail-row';
+  detailRow.innerHTML = `<td colspan="${cols}"><span style="color:#475569;font-size:12px">Loading…</span></td>`;
+  tr.parentNode.insertBefore(detailRow, tr.nextSibling);
+
+  const res = await callAdmin({ action: 'get_user_detail', user_id: userId });
+  if (res.__session_expired) { detailRow.remove(); tr.classList.remove('pay-row-expanded'); return; }
+  if (res.error) {
+    detailRow.querySelector('td').innerHTML = `<span style="color:#F87171;font-size:12px">Error: ${escHtml(res.error)}</span>`;
+    return;
+  }
+  const f  = v => (v != null && v !== '') ? escHtml(String(v)) : '<span style="color:#475569">—</span>';
+  const fd = iso => iso ? new Date(iso).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit',hour:'2-digit',minute:'2-digit'}) : null;
+  const lbl = t => `<div style="color:#475569;font-size:10px;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px">${t}</div>`;
+  detailRow.querySelector('td').innerHTML = `
+    <div style="display:flex;gap:28px;flex-wrap:wrap;font-size:12px;line-height:1.8">
+      <div>${lbl('Phone / Contact')}<div style="color:#F1F5F9;font-weight:600">${f(res.phone)}</div></div>
+      <div>${lbl('Email')}<div style="color:#F1F5F9;font-weight:600">${f(res.email)}</div></div>
+      <div>${lbl('Chitzy Name')}<div style="color:#F1F5F9;font-weight:600">${f(res.chitzy_name)}</div></div>
+      <div>${lbl('Current Plan')}<div style="color:${res.current_plan === 'pro' ? '#34D399' : '#94A3B8'};font-weight:600">${f(res.current_plan)}</div></div>
+      <div>${lbl('Pro Expires')}<div style="color:#F1F5F9">${f(fd(res.pro_expires_at))}</div></div>
+      <div>${lbl('Joined')}<div style="color:#F1F5F9">${f(fd(res.created_at))}</div></div>
+      <div>${lbl('Last Active')}<div style="color:#F1F5F9">${f(fd(res.last_sign_in_at))}</div></div>
+      <div>${lbl('Full User ID')}<div style="font-family:monospace;font-size:10px;color:#94A3B8;user-select:all">${f(userId)}</div></div>
+    </div>`;
 }
 </script>
 </body>
