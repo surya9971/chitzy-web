@@ -322,7 +322,7 @@
       </div>
     </div>
     <div class="pay-toolbar">
-      <input type="text" id="pay-search-input" class="search-input" style="margin-left:0;width:300px" placeholder="Search by username…" oninput="paySearchChanged(this.value)" />
+      <input type="text" id="pay-search-input" class="search-input" style="margin-left:0;width:300px" placeholder="Search by username, email or phone…" oninput="paySearchChanged(this.value)" />
       <button class="btn-primary" style="width:auto;padding:7px 16px;font-size:13px" onclick="loadPayments(0)">↻ Refresh</button>
       <span id="pay-total-label" style="color:#475569;font-size:12px"></span>
     </div>
@@ -917,7 +917,11 @@ async function loadPayments(page) {
   document.getElementById('pay-total-label').textContent = '';
 
   const body = { action: 'get_payment_logs', page: payPage, per_page: PAY_PER_PAGE };
-  if (paySearchUid) body.search_chitzy_name = paySearchUid;
+  if (paySearchUid) {
+    if (paySearchUid.includes('@'))        body.search_email = paySearchUid;
+    else if (/^[+\d]/.test(paySearchUid)) body.search_phone = paySearchUid;
+    else                                   body.search_chitzy_name = paySearchUid;
+  }
 
   const res = await callAdmin(body);
   if (res.__session_expired) return;
