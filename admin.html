@@ -1081,12 +1081,17 @@ async function togglePayRow(ev, tr, userId) {
 
   const history = res.payment_history || [];
   const historyRows = history.length === 0
-    ? `<tr><td colspan="7" style="padding:10px 8px;color:#475569;font-size:11px;text-align:center">No payment records</td></tr>`
+    ? `<tr><td colspan="8" style="padding:10px 8px;color:#475569;font-size:11px;text-align:center">No payment records</td></tr>`
     : history.map(l => {
         const origTx = l.original_transaction_id && l.original_transaction_id !== l.transaction_id
           ? `<div style="margin-top:2px;color:#475569;font-size:10px">orig: ${txCell(l.original_transaction_id)}</div>` : '';
+        const userCell = (l.chitzy_name || l.email)
+          ? `<div style="color:#F1F5F9">${l.chitzy_name ? escHtml(l.chitzy_name) : '<span style="color:#475569">—</span>'}</div>`
+            + (l.email ? `<div style="color:#475569;font-size:10px">${escHtml(l.email)}</div>` : '')
+          : '<span style="color:#475569">—</span>';
         return `<tr style="border-bottom:1px solid rgba(255,255,255,0.04)">
           <td style="padding:5px 8px;color:#94A3B8">${escHtml(fd(l.created_at) || '—')}</td>
+          <td style="padding:5px 8px">${userCell}</td>
           <td style="padding:5px 8px">${providerLabel(l.provider)}</td>
           <td style="padding:5px 8px;color:#94A3B8">${escHtml(l.plan_type || '—')}</td>
           <td style="padding:5px 8px">${statusBadge(l)}</td>
@@ -1113,6 +1118,7 @@ async function togglePayRow(ev, tr, userId) {
         <thead>
           <tr style="color:#475569;border-bottom:1px solid rgba(255,255,255,0.08)">
             <th style="text-align:left;padding:4px 8px;font-weight:500">Date</th>
+            <th style="text-align:left;padding:4px 8px;font-weight:500">User</th>
             <th style="text-align:left;padding:4px 8px;font-weight:500">Provider</th>
             <th style="text-align:left;padding:4px 8px;font-weight:500">Plan</th>
             <th style="text-align:left;padding:4px 8px;font-weight:500">Status</th>
