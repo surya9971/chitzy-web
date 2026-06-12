@@ -939,8 +939,10 @@ function renderPayments(logs, total) {
                 : isStale  ? '<span class="pay-badge-stale">Stale ⚠</span>'
                 :            '<span class="pay-badge-success">Success ✓</span>';
 
-    const provider = l.provider === 'apple_iap'  ? '🍎 Apple'
-                   : l.provider === 'google_play' ? '🤖 Google'
+    const provider = l.provider === 'apple_iap'   ? '🍎 Apple'
+                   : l.provider === 'google_play'  ? '🤖 Google'
+                   : l.provider === 'admin_grant'  ? '🛡️ Admin'
+                   : l.provider === 'legacy'        ? '<span style="color:#475569">legacy</span>'
                    : escHtml(l.provider || '—');
 
     const plan = l.plan_type === 'yearly' ? '1 Year' : l.plan_type === 'monthly' ? '1 Month' : escHtml(l.plan_type || '—');
