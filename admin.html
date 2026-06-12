@@ -976,7 +976,7 @@ function renderPayments(logs, total) {
          <button class="btn-grant" onclick="grantPro('${safeUid}','yearly','${safeName}',this)">+1 Year</button>`
       : isOk ? '<span style="color:#34D399;font-size:11px">Active ✓</span>' : '—';
 
-    return `<tr class="pay-row-clickable" onclick="togglePayRow(event,this,'${safeUid}')">
+    return `<tr class="pay-row-clickable" data-uid="${safeUid}" onclick="togglePayRow(event,this,'${safeUid}')">
       <td>${name}${uid}</td>
       <td style="white-space:nowrap">${provider}</td>
       <td style="white-space:nowrap">${plan}</td>
@@ -1003,15 +1003,32 @@ function renderPayments(logs, total) {
 async function grantPro(userId, duration, name, btn) {
   const label = duration === 'yearly' ? '1 year' : '1 month';
   if (!confirm(`Grant Pro (${label}) to ${name}?\n\nThis manually activates their subscription until ${label} from now.`)) return;
-  btn.disabled = true;
-  const orig = btn.textContent;
-  btn.textContent = '…';
+
+  // Immediately disable ALL grant buttons for this user across all rows
+  document.querySelectorAll(`tr[data-uid="${userId}"] button.btn-grant`).forEach(b => {
+    b.disabled = true; b.textContent = '…';
+  });
+
   const res = await callAdmin({ action: 'grant_pro', user_id: userId, duration });
   if (res.__session_expired) return;
-  if (res.error) { showToast('Error: ' + res.error, true); btn.disabled = false; btn.textContent = orig; return; }
+  if (res.error) {
+    showToast('Error: ' + res.error, true);
+    document.querySelectorAll(`tr[data-uid="${userId}"] button.btn-grant`).forEach(b => {
+      b.disabled = false; b.textContent = b.textContent.includes('Month') ? '+1 Month' : '+1 Year';
+    });
+    return;
+  }
+
   const until = new Date(res.expires_at).toLocaleDateString('en-IN',{day:'numeric',month:'short',year:'2-digit'});
   showToast(`✓ Pro granted to ${name} until ${until}`);
-  setTimeout(() => loadPayments(payPage), 800);
+
+  // Immediately update all rows for this user to show Active ✓
+  document.querySelectorAll(`tr[data-uid="${userId}"]`).forEach(row => {
+    const lastCell = row.cells[row.cells.length - 1];
+    lastCell.innerHTML = '<span style="color:#34D399;font-size:11px">Active ✓</span>';
+  });
+
+  setTimeout(() => loadPayments(payPage), 1500);
 }
 
 async function togglePayRow(ev, tr, userId) {
