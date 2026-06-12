@@ -935,7 +935,8 @@ function renderPayments(logs, total) {
 
   const now = new Date();
   document.getElementById('pay-tbody').innerHTML = logs.map(l => {
-    const isStale  = l.status === 'success' && l.expires_at && new Date(l.expires_at) <= now;
+    const isExpired = l.expires_at && new Date(l.expires_at) <= now;
+    const isStale  = l.status === 'success' && (isExpired || !l.expires_at && l.provider === 'legacy');
     const isFailed = l.status === 'failed';
     const isOk     = l.status === 'success' && !isStale;
 
