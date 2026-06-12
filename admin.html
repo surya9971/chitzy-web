@@ -936,9 +936,10 @@ function renderPayments(logs, total) {
   const now = new Date();
   document.getElementById('pay-tbody').innerHTML = logs.map(l => {
     const isExpired = l.expires_at && new Date(l.expires_at) <= now;
-    const isStale  = l.status === 'success' && (isExpired || !l.expires_at && l.provider === 'legacy');
-    const isFailed = l.status === 'failed';
-    const isOk     = l.status === 'success' && !isStale;
+    const isSuccess = l.status === 'success' || l.status == null;
+    const isStale   = isSuccess && (isExpired || (!l.expires_at && l.provider === 'legacy'));
+    const isFailed  = l.status === 'failed';
+    const isOk      = isSuccess && !isStale;
 
     const badge = isFailed ? '<span class="pay-badge-failed">Failed</span>'
                 : isStale  ? '<span class="pay-badge-stale">Stale ⚠</span>'
