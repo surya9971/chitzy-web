@@ -976,8 +976,8 @@ function renderPayments(logs, total) {
          <button class="btn-grant" onclick="grantPro('${safeUid}','yearly','${safeName}',this)">+1 Year</button>`
       : isOk ? '<span style="color:#34D399;font-size:11px">Active ✓</span>' : '—';
 
-    const storedName  = escAttr(l.chitzy_name || '');
-    const storedEmail = escAttr(l.email || '');
+    const storedName  = escHtml(l.chitzy_name || '');
+    const storedEmail = escHtml(l.email || '');
     return `<tr class="pay-row-clickable" data-uid="${safeUid}" data-stored-name="${storedName}" data-stored-email="${storedEmail}" onclick="togglePayRow(event,this,'${safeUid}')">
       <td>${name}${uid}</td>
       <td style="white-space:nowrap">${provider}</td>
