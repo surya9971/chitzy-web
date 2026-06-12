@@ -685,7 +685,7 @@ function groupHtml(g) {
         <span>reporters</span>
         ${g.deviceHistory
           ? `<span style="color:#FB923C;font-size:10px;margin-top:4px;display:block">📱 ${g.deviceHistory.total_reports} reports · ${g.deviceHistory.actioned_reports} blocked</span>
-             ${g.deviceHistory.all_usernames?.length > 1 ? `<span style="color:#475569;font-size:10px;display:block">was: ${g.deviceHistory.all_usernames.filter(n => n !== u.chitzy_name).join(', ')}</span>` : ''}`
+             ${g.deviceHistory.all_usernames?.length > 1 ? `<span style="color:#475569;font-size:10px;display:block">was: ${g.deviceHistory.all_usernames.filter(n => n !== u.chitzy_name).map(escHtml).join(', ')}</span>` : ''}`
           : '<span style="color:#475569;font-size:10px;margin-top:4px;display:block">📱 no device history</span>'}
       </div>
       <div class="latest-msg">${msgPreview}</div>
