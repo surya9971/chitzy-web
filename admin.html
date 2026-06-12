@@ -413,6 +413,12 @@ async function login() {
   document.getElementById('login-error').textContent = '';
 
   const res = await callAdmin({ action: 'get_reports' }, pass, totp);
+  if (res.__session_expired) {
+    document.getElementById('login-error').textContent = 'Wrong password or 2FA code.';
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('main-screen').style.display = 'none';
+    return;
+  }
   if (res.error) {
     const msg = res.error === 'Unauthorized'         ? 'Wrong password.' :
                 res.error === 'Invalid 2FA code'     ? 'Wrong 2FA code.' :
