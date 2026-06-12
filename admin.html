@@ -331,7 +331,7 @@
       <thead>
         <tr>
           <th>User</th><th>Provider</th><th>Plan</th><th>Status</th>
-          <th>Error / Note</th><th>Expires</th><th>Date</th><th>Grant Pro</th>
+          <th>Error / Note</th><th>Expires</th><th>Transaction ID</th><th>Date</th><th>Grant Pro</th>
         </tr>
       </thead>
       <tbody id="pay-tbody"></tbody>
@@ -978,13 +978,18 @@ function renderPayments(logs, total) {
 
     const storedName  = escHtml(l.chitzy_name || '');
     const storedEmail = escHtml(l.email || '');
-    return `<tr class="pay-row-clickable" data-uid="${safeUid}" data-stored-name="${storedName}" data-stored-email="${storedEmail}" onclick="togglePayRow(event,this,'${safeUid}')">
+    const storedTxId  = escHtml(l.transaction_id || '');
+    const txShort = l.transaction_id
+      ? `<span style="font-family:monospace;font-size:10px;color:#475569;cursor:pointer;user-select:all" title="${escHtml(l.transaction_id)}">${escHtml(l.transaction_id.slice(0,10))}…</span>`
+      : '<span style="color:#475569">—</span>';
+    return `<tr class="pay-row-clickable" data-uid="${safeUid}" data-stored-name="${storedName}" data-stored-email="${storedEmail}" data-stored-txid="${storedTxId}" onclick="togglePayRow(event,this,'${safeUid}')">
       <td>${name}${uid}</td>
       <td style="white-space:nowrap">${provider}</td>
       <td style="white-space:nowrap">${plan}</td>
       <td>${badge}</td>
       <td style="max-width:200px">${errNote}</td>
       <td>${expires}</td>
+      <td style="white-space:nowrap">${txShort}</td>
       <td style="color:#475569;font-size:11px;white-space:nowrap">${escHtml(date)}</td>
       <td style="white-space:nowrap">${grantBtns}</td>
     </tr>`;
@@ -1054,13 +1059,15 @@ async function togglePayRow(ev, tr, userId) {
   if (!userId) {
     const sName  = tr.dataset.storedName  || '';
     const sEmail = tr.dataset.storedEmail || '';
+    const sTxId  = tr.dataset.storedTxid  || '';
     detailRow.querySelector('td').innerHTML = `
       <div style="font-size:12px">
         <span style="color:#F97316;font-weight:600">⚠ Account deleted</span>
         <div style="margin-top:10px;display:flex;gap:24px;flex-wrap:wrap">
           <div>${lbl('Last Known Name')}<div style="color:#F1F5F9;font-weight:600">${sName ? escHtml(sName) : '<span style=\'color:#475569\'>—</span>'}</div></div>
           <div>${lbl('Last Known Email')}<div style="color:#F1F5F9;font-weight:600">${sEmail ? escHtml(sEmail) : '<span style=\'color:#475569\'>—</span>'}</div></div>
-          <div>${lbl('Note')}<div style="color:#475569">Payment record preserved. Use transaction ID to look up in Apple/Google console.</div></div>
+          <div>${lbl('Transaction ID')}<div style="font-family:monospace;font-size:11px;color:#94A3B8;user-select:all;word-break:break-all">${sTxId ? escHtml(sTxId) : '<span style=\'color:#475569\'>—</span>'}</div></div>
+          <div>${lbl('Note')}<div style="color:#475569">Look up this transaction ID in Apple/Google console.</div></div>
         </div>
       </div>`;
     return;
