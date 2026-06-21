@@ -10,6 +10,7 @@
   <meta name="twitter:card"       content="summary" />
   <meta name="theme-color"        content="#070C0B" />
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <style>
     :root {
       --bg:#070C0B; --surface:#0F1714; --surfaceHi:#162019;
@@ -198,6 +199,10 @@
     <a href="https://play.google.com/store/apps/details?id=com.chitzy.app" class="app-cta-link">Get app</a>
   </div>
 
+  <!-- Cloudflare Turnstile bot check. REPLACE data-sitekey with your real site key.
+       (1x00000000000000000000AA is Cloudflare's "always passes" TEST key — no real protection until you swap it.) -->
+  <div class="cf-turnstile" data-sitekey="0x4AAAAAADooc19gyyAz2Vzx" data-theme="dark" style="margin-top:18px;display:flex;justify-content:center;"></div>
+
   <button class="send-btn" id="send-btn" disabled>Send Anonymously →</button>
   <p class="disclaimer">🔒 The recipient will never know it was you</p>
   <p id="send-error" style="display:none;color:#F87171;font-size:13px;text-align:center;margin-top:8px;"></p>
@@ -322,13 +327,21 @@ async function loadTemplates() {
 
 $('send-btn').addEventListener('click', async () => {
   if (!selectedTemplate || !recipientId) return;
+
+  // Cloudflare Turnstile — require the human-check token before sending
+  const turnstileToken = window.turnstile ? turnstile.getResponse() : '';
+  if (!turnstileToken) {
+    showSendError("Verifying you're human… give it a second, then tap Send again.");
+    return;
+  }
+
   $('send-btn').disabled    = true;
   $('send-btn').textContent = 'Sending...';
 
   try {
     const payload = selectedTemplate.type === 'quick'
-      ? { recipientId, quickMessageId: selectedTemplate.id }
-      : { recipientId, templateId: selectedTemplate.id };
+      ? { recipientId, quickMessageId: selectedTemplate.id, turnstileToken }
+      : { recipientId, templateId: selectedTemplate.id, turnstileToken };
     if (dropId) payload.dropId = dropId;
 
     const resp = await fetch(`${EDGE_BASE}/send-message-web`, {
@@ -343,6 +356,7 @@ $('send-btn').addEventListener('click', async () => {
     showSendError(e.message || 'Something went wrong. Please try again.');
     $('send-btn').disabled    = false;
     $('send-btn').textContent = 'Send Anonymously →';
+    if (window.turnstile) turnstile.reset(); // token is single-use — issue a fresh one
   }
 });
 
@@ -351,6 +365,7 @@ $('another-btn').addEventListener('click', () => {
   $('send-btn').disabled    = true;
   $('send-btn').textContent = 'Send Anonymously →';
   document.querySelectorAll('.tpl-card').forEach(c => c.classList.remove('sel'));
+  if (window.turnstile) turnstile.reset(); // fresh token for the next send
   show('s-send');
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
