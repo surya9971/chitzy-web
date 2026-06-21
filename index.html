@@ -4,157 +4,131 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chitzy — Anonymous Messages for Real Ones</title>
+  <meta property="og:title"       content="Chitzy — Anonymous Messages for Real Ones" />
+  <meta property="og:description" content="Share your link. Get anonymous messages from people who know you." />
+  <meta name="theme-color"        content="#070C0B" />
   <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      background: #070C0B;
-      color: #F1F5F9;
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 40px 20px;
-      text-align: center;
+    :root{
+      --bg:#070C0B; --surface:#0F1714; --teal:#0D9488; --tealLight:#5EEAD4;
+      --orange:#F97316; --text:#F1F5F9; --textSec:#94A3B8; --textMuted:#475569;
+      --glass:rgba(15,23,20,0.55); --border:rgba(255,255,255,0.08);
     }
-    .logo {
-      font-size: 48px;
-      font-weight: 800;
-      color: #0D9488;
-      letter-spacing: -1px;
-      margin-bottom: 12px;
+    *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+    html{scroll-behavior:smooth;}
+    body{
+      background:var(--bg); color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Inter,sans-serif;
+      min-height:100dvh; overflow-x:hidden; position:relative;
+      display:flex; flex-direction:column; align-items:center;
+      padding:64px 22px 56px; text-align:center;
     }
-    .tagline {
-      font-size: 20px;
-      color: #94A3B8;
-      margin-bottom: 48px;
-      max-width: 400px;
-      line-height: 1.5;
-    }
-    .badge {
-      background: rgba(13,148,136,0.12);
-      border: 1px solid rgba(13,148,136,0.3);
-      color: #5EEAD4;
-      font-size: 13px;
-      font-weight: 600;
-      padding: 6px 14px;
-      border-radius: 20px;
-      display: inline-block;
-      margin-bottom: 48px;
-      letter-spacing: 0.3px;
-    }
-    .features {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-      max-width: 380px;
-      width: 100%;
-      margin-bottom: 56px;
-    }
-    .feature {
-      background: #0F1714;
-      border: 1px solid rgba(255,255,255,0.06);
-      border-radius: 14px;
-      padding: 18px 20px;
-      display: flex;
-      align-items: flex-start;
-      gap: 14px;
-      text-align: left;
-    }
-    .feature-icon { font-size: 22px; margin-top: 1px; }
-    .feature-title { font-size: 15px; font-weight: 600; color: #F1F5F9; margin-bottom: 3px; }
-    .feature-desc { font-size: 13px; color: #94A3B8; line-height: 1.5; }
-    .cta-row {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 12px;
-      width: 100%;
-      max-width: 300px;
-    }
-    .cta {
-      background: #0D9488;
-      color: #fff;
-      font-size: 15px;
-      font-weight: 700;
-      padding: 14px 32px;
-      border-radius: 14px;
-      text-decoration: none;
-      display: block;
-      width: 100%;
-      text-align: center;
-      letter-spacing: 0.2px;
-    }
-    .cta.secondary {
-      background: #162019;
-      border: 1px solid rgba(13,148,136,0.3);
-      color: #5EEAD4;
-    }
-    .cta-sub { color: #475569; font-size: 13px; margin-bottom: 56px; }
-    .links {
-      display: flex;
-      gap: 24px;
-      flex-wrap: wrap;
-      justify-content: center;
-    }
-    .links a {
-      color: #475569;
-      text-decoration: none;
-      font-size: 13px;
-    }
-    .links a:hover { color: #94A3B8; }
+    /* ── Aurora background ── */
+    .orb{position:fixed;border-radius:50%;filter:blur(90px);opacity:.5;z-index:0;pointer-events:none;}
+    .orb.a{width:460px;height:460px;background:radial-gradient(circle,#0D9488,transparent 70%);top:-160px;left:-120px;animation:drift1 18s ease-in-out infinite;}
+    .orb.b{width:420px;height:420px;background:radial-gradient(circle,#F97316,transparent 70%);bottom:-140px;right:-120px;opacity:.32;animation:drift2 22s ease-in-out infinite;}
+    .orb.c{width:300px;height:300px;background:radial-gradient(circle,#5EEAD4,transparent 70%);top:38%;right:-100px;opacity:.18;animation:drift1 26s ease-in-out infinite reverse;}
+    @keyframes drift1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(60px,50px) scale(1.12)}}
+    @keyframes drift2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-50px,-40px) scale(1.15)}}
+    /* dotted grid overlay */
+    body::before{content:'';position:fixed;inset:0;z-index:0;pointer-events:none;
+      background-image:radial-gradient(rgba(255,255,255,0.04) 1px,transparent 1px);
+      background-size:26px 26px;mask-image:radial-gradient(ellipse 90% 60% at 50% 20%,#000,transparent);}
+    .content{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;width:100%;max-width:420px;}
+
+    /* ── Hero ── */
+    .pill{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:600;letter-spacing:.4px;
+      color:var(--tealLight);background:rgba(13,148,136,0.10);border:1px solid rgba(13,148,136,0.28);
+      padding:7px 15px;border-radius:30px;margin-bottom:30px;backdrop-filter:blur(8px);
+      animation:rise .7s both;}
+    .logo{font-size:74px;font-weight:900;letter-spacing:-3px;line-height:1;margin-bottom:18px;
+      background:linear-gradient(135deg,#5EEAD4 0%,#0D9488 55%,#0a6b62 100%);
+      -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+      filter:drop-shadow(0 0 28px rgba(13,148,136,0.45));animation:rise .7s .05s both;}
+    .tagline{font-size:19px;color:var(--textSec);line-height:1.55;max-width:360px;margin-bottom:42px;
+      animation:rise .7s .12s both;}
+    .tagline b{color:var(--text);font-weight:700;}
+
+    /* ── Features ── */
+    .features{display:flex;flex-direction:column;gap:13px;width:100%;margin-bottom:46px;}
+    .feature{display:flex;align-items:flex-start;gap:15px;text-align:left;
+      background:var(--glass);border:1px solid var(--border);border-radius:18px;padding:18px 20px;
+      backdrop-filter:blur(18px);position:relative;overflow:hidden;
+      transition:transform .25s,border-color .25s,box-shadow .25s;animation:rise .7s both;}
+    .feature:nth-child(1){animation-delay:.18s}.feature:nth-child(2){animation-delay:.24s}
+    .feature:nth-child(3){animation-delay:.30s}.feature:nth-child(4){animation-delay:.36s}
+    .feature::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;
+      background:linear-gradient(var(--teal),var(--tealLight));opacity:.55;}
+    .feature:hover{transform:translateY(-3px);border-color:rgba(13,148,136,0.4);
+      box-shadow:0 14px 40px rgba(0,0,0,0.45),0 0 0 1px rgba(13,148,136,0.12);}
+    .f-icon{font-size:24px;line-height:1;margin-top:1px;filter:drop-shadow(0 0 10px rgba(13,148,136,0.4));}
+    .f-title{font-size:15.5px;font-weight:700;margin-bottom:4px;}
+    .f-desc{font-size:13px;color:var(--textSec);line-height:1.55;}
+
+    /* ── CTAs ── */
+    .ctas{display:flex;flex-direction:column;gap:12px;width:100%;max-width:320px;margin-bottom:14px;
+      animation:rise .7s .42s both;}
+    .btn{display:flex;align-items:center;justify-content:center;gap:9px;width:100%;
+      font-size:15px;font-weight:700;letter-spacing:.2px;padding:16px 28px;border-radius:15px;
+      text-decoration:none;transition:transform .15s,box-shadow .25s,filter .25s;}
+    .btn.primary{color:#fff;background:linear-gradient(135deg,#0D9488,#0a8076);
+      box-shadow:0 8px 30px rgba(13,148,136,0.42);}
+    .btn.primary:hover{transform:translateY(-2px);box-shadow:0 12px 40px rgba(13,148,136,0.6);filter:brightness(1.08);}
+    .btn.ghost{color:var(--tealLight);background:rgba(13,148,136,0.07);border:1px solid rgba(13,148,136,0.3);backdrop-filter:blur(8px);}
+    .btn.ghost:hover{transform:translateY(-2px);background:rgba(13,148,136,0.14);}
+    .cta-sub{color:var(--textMuted);font-size:12.5px;margin-bottom:48px;animation:rise .7s .48s both;}
+
+    /* ── Footer ── */
+    .links{display:flex;gap:22px;flex-wrap:wrap;justify-content:center;animation:rise .7s .54s both;}
+    .links a{color:var(--textMuted);text-decoration:none;font-size:12.5px;transition:color .2s;}
+    .links a:hover{color:var(--tealLight);}
+
+    @keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:380px){.logo{font-size:60px}.tagline{font-size:17px}}
   </style>
 </head>
 <body>
-  <div class="logo">chitzy</div>
-  <p class="tagline">Share your link. Get anonymous messages from people who know you.</p>
+  <div class="orb a"></div><div class="orb b"></div><div class="orb c"></div>
 
-  <span class="badge">🇮🇳 Made in India</span>
+  <div class="content">
+    <span class="pill">🇮🇳 Made in India · Always anonymous</span>
+    <div class="logo">chitzy</div>
+    <p class="tagline">Share your link. Get <b>anonymous messages</b> from people who actually know you.</p>
 
-  <div class="features">
-    <div class="feature">
-      <span class="feature-icon">🔗</span>
-      <div>
-        <div class="feature-title">Share your link</div>
-        <div class="feature-desc">Get a unique chitzy link and share it on Instagram, WhatsApp, anywhere.</div>
+    <div class="features">
+      <div class="feature">
+        <span class="f-icon">🔗</span>
+        <div><div class="f-title">Share your link</div>
+        <div class="f-desc">Get a unique chitzy link and drop it on Instagram, WhatsApp, anywhere.</div></div>
+      </div>
+      <div class="feature">
+        <span class="f-icon">🎭</span>
+        <div><div class="f-title">Always anonymous</div>
+        <div class="f-desc">Senders are never named. Pick from AI-curated messages or write your own — your identity stays hidden, always.</div></div>
+      </div>
+      <div class="feature">
+        <span class="f-icon">🔥</span>
+        <div><div class="f-title">Build your streak</div>
+        <div class="f-desc">Send or post daily to grow your streak. Earn freeze protection at milestones — and unlock free Pro at 100 days.</div></div>
+      </div>
+      <div class="feature">
+        <span class="f-icon">✦</span>
+        <div><div class="f-title">Chitzy Pro</div>
+        <div class="f-desc">Unlimited sends, no ads, see a sender's school or workplace (free = city only), 7 max freezes. iOS ₹49/mo · Android ₹40/mo.</div></div>
       </div>
     </div>
-    <div class="feature">
-      <span class="feature-icon">🎭</span>
-      <div>
-        <div class="feature-title">Always anonymous</div>
-        <div class="feature-desc">Senders are never identified by name. Pick from AI-curated messages or write your own — your identity stays hidden.</div>
-      </div>
-    </div>
-    <div class="feature">
-      <span class="feature-icon">🔥</span>
-      <div>
-        <div class="feature-title">Build your streak</div>
-        <div class="feature-desc">Send a message or post a drop every day to grow your streak. Earn freeze protection at milestones and unlock free Pro at 100 days.</div>
-      </div>
-    </div>
-    <div class="feature">
-      <span class="feature-icon">✦</span>
-      <div>
-        <div class="feature-title">Chitzy Pro</div>
-        <div class="feature-desc">Unlimited sends, no ads, see sender's school or workplace (free = city only), 7 max freezes — iOS: ₹49/month or ₹399/year · Android: ₹40/month or ₹299/year.</div>
-      </div>
-    </div>
-  </div>
 
-  <div class="cta-row">
-    <a class="cta" href="#" id="ios-btn">⬇ Download on App Store</a>
-    <a class="cta secondary" href="https://play.google.com/store/apps/details?id=com.chitzy.app" target="_blank">⬇ Get it on Google Play</a>
-  </div>
-  <p class="cta-sub">Available on iOS &amp; Android</p>
+    <div class="ctas">
+      <a class="btn primary" href="#">⬇&nbsp; Download on App Store</a>
+      <a class="btn ghost" href="https://play.google.com/store/apps/details?id=com.chitzy.app" target="_blank" rel="noopener">⬇&nbsp; Get it on Google Play</a>
+    </div>
+    <p class="cta-sub">Available on iOS &amp; Android</p>
 
-  <div class="links">
-    <a href="/privacy">Privacy Policy</a>
-    <a href="/terms">Terms of Service</a>
-    <a href="/help">Help &amp; FAQ</a>
-    <a href="mailto:support@chitzy.in">Contact</a>
+    <div class="links">
+      <a href="/privacy">Privacy</a>
+      <a href="/terms">Terms</a>
+      <a href="/help">Help &amp; FAQ</a>
+      <a href="mailto:support@chitzy.in">Contact</a>
+    </div>
   </div>
 </body>
 </html>
