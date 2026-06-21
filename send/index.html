@@ -388,6 +388,18 @@ function showSendError(msg) {
   el.style.display = 'block';
 }
 
+// Platform-aware app links — never send iPhone users to Google Play.
+// iOS app isn't on the App Store yet, so on iOS these links are inert ('#').
+// When iOS launches, set APP_STORE_URL to the real App Store URL.
+(function () {
+  const APP_STORE_URL = '#';
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || '') ||
+                (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1); // iPadOS
+  if (isIOS) {
+    document.querySelectorAll('.get-app, .app-cta-link').forEach(a => { a.href = APP_STORE_URL; });
+  }
+})();
+
 init();
 </script>
 </body>
